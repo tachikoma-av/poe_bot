@@ -1,4 +1,5 @@
 *
+
 !.gitignore
 !build_release.ipynb
 !setup.py
@@ -12,18 +13,9 @@
 
 
 # poe 1 hud plugin 
-!hud_dpb/
-!hud_dpb/ExileApi/
-!hud_dpb/ExileApi/Core/
-!hud_dpb/ExileApi/Core/Plugins/
-!hud_dpb/ExileApi/Core/Plugins/ShareData/
 !hud_dpb/ExileApi/Core/Plugins/ShareData/**
 
 # poe 2 hud 
-!hud_dpb/ExileCore2/
-!hud_dpb/ExileCore2/Plugins/
-!hud_dpb/ExileCore2/Plugins/Source/
-!hud_dpb/ExileCore2/Plugins/Source/ShareData/
 !hud_dpb/ExileCore2/Plugins/Source/ShareData/**
 
 

@@ -1029,9 +1029,9 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     public List<string> getAtlasProgress(){
         // returns list of strings of completed maps
         List<string> finished_maps = new List<string>();
-        foreach (var finished_map in GameController.IngameState.Data.ServerData.BonusCompletedAreas){
-            finished_maps.Add(finished_map.Name);
-        }
+        // foreach (var finished_map in GameController.IngameState.Data.ServerData.BonusCompletedAreas){
+        //     finished_maps.Add(finished_map.Name);
+        // }
         return finished_maps;
     }
     public List<QuestState_c> getQuestStates(){
@@ -1439,14 +1439,16 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     
     public GetMapDeviceInfoObject mapDeviceInfo(){
         GetMapDeviceInfoObject map_device_info = new GetMapDeviceInfoObject();
-        var world_map_object = GameController.IngameState.IngameUi.WorldMap;
-        map_device_info.wm_o = world_map_object.IsVisible;
-        if (world_map_object.IsVisible == false){
+        var atlas_panel_object = GameController.IngameState.IngameUi.WorldMap.AtlasPanel;
+        map_device_info.wm_o = atlas_panel_object.IsVisible;
+        if (atlas_panel_object.IsVisible == false){
             return map_device_info;
         }
 
+
+
         List<WorldMapEndGameMapObj> avaliable_maps  = new List<WorldMapEndGameMapObj>();
-        var maps = world_map_object.Descriptions;
+        var maps = atlas_panel_object.Descriptions;
         foreach (var tile in maps){
             var mapElement = tile.Element;
             if (mapElement.IsUnlocked == false || mapElement.IsVisited == true){
@@ -1473,7 +1475,67 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         map_device_info.av_m = avaliable_maps;
 
         // place map window
-        
+        var world_map_object = GameController.IngameState.IngameUi.WorldMap;
+        int world_map_children_count = world_map_object.Children.Count;
+
+        // int running_iter = world_map_children_count - 2;
+        // while (running_iter < world_map_children_count){
+        for (int running_iter = world_map_children_count - 2; running_iter < world_map_children_count; running_iter++){
+            var child_element = world_map_object.Children[running_iter];
+            if (child_element.Children.Count == 3){
+                var place_map_window_element = child_element;
+                map_device_info.pmw_o = place_map_window_element.IsVisible;
+                if (place_map_window_element.IsVisible == false){
+                    break;
+                }
+
+                var placemapwindowelementrectangle = place_map_window_element.GetClientRect();
+                map_device_info.pmw_sz = new List<int> {
+                    (int)placemapwindowelementrectangle.X, 
+                    (int)(placemapwindowelementrectangle.X + placemapwindowelementrectangle.Width), 
+                    (int)placemapwindowelementrectangle.Y, 
+                    (int)(placemapwindowelementrectangle.Y + placemapwindowelementrectangle.Height), 
+                };
+
+                var activatebuttonreactangle = place_map_window_element.Children[1].Children[5].Children[1].GetClientRect();
+                map_device_info.pmw_ab_sz = new List<int> {
+                    (int)activatebuttonreactangle.X, 
+                    (int)(activatebuttonreactangle.X + activatebuttonreactangle.Width), 
+                    (int)activatebuttonreactangle.Y, 
+                    (int)(activatebuttonreactangle.Y + activatebuttonreactangle.Height), 
+                };
+
+
+
+
+                var items_placed_in_map_device_parent = place_map_window_element.Children[1].Children[5].Children[0];
+                List<InventoryObjectCustom_c> items  = new List<InventoryObjectCustom_c>();
+                int i_start = 1;
+                int i_end = items_placed_in_map_device_parent.Children.Count;
+                // get info about items in slots
+                for (int i = i_start; i < i_end; i++){
+                    InventoryObjectCustom_c item = new InventoryObjectCustom_c();
+                    try {
+                        var item_info = items_placed_in_map_device_parent.Children[i];
+                        item = convertItem(item_info.Entity);
+                        var item_rect = item_info.GetClientRect();
+                        item.s = new List<int> {
+                            (int)item_rect.X, 
+                            (int)(item_rect.X + item_rect.Width), 
+                            (int)item_rect.Y, 
+                            (int)(item_rect.Y + item_rect.Height), 
+                        };
+                    } catch (Exception ex){
+                        // DebugWindow.LogMsg($"sharedata mapDeviceInfo for items -> {ex}");
+                    }
+                    items.Add(item);
+                }
+                map_device_info.pmw_i = items;
+
+                break;
+            }
+            // running_iter += 1;
+        }
 
         return map_device_info;
 
