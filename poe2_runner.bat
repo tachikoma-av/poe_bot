@@ -2,7 +2,7 @@ cd 1_host
 set machine=j2
 set debug=0
 set unique_id=poe2_test
-set remote_ip=172.27.23.23
+set remote_ip=172.23.178.57
 
 TITLE %machine% %remote_ip% %unique_id% %predefined_strategy% %build_name%
 :infinity_loop

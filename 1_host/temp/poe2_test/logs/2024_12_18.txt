@@ -1,0 +1,33 @@
+2024-12-18T10:34:43 game window width or height aren't 1024x768
+2024-12-18T10:35:00 game window width or height aren't 1024x768 , sleep 3600*24
+2024-12-18T10:35:00 '  File "poe_2_lost_city.py", line 363, in <module>\n    poe_bot.refreshAll()\n'
+2024-12-18T10:35:00 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 175, in refreshAll\n    self.game_window.update(refreshed_data=refreshed_data)\n'
+2024-12-18T10:35:00 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 992, in update\n    self.poe_bot.raiseLongSleepException(f"game window width or height aren\'t 1024x768")\n'
+2024-12-18T10:35:00 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 253, in raiseLongSleepException\n    raiseLongSleepException(text)\n'
+2024-12-18T10:35:00 '  File "C:\\p2\\1_host\\utils\\utils.py", line 43, in raiseLongSleepException\n    raise Exception(f\'{text} , sleep 3600*24\')\n'
+2024-12-18T13:33:02 game window width or height aren't 1024x768
+2024-12-18T13:33:20 game window width or height aren't 1024x768 , sleep 3600*24
+2024-12-18T13:33:20 '  File "poe_2_lost_city.py", line 84, in <module>\n    poe_bot.refreshAll()\n'
+2024-12-18T13:33:20 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 175, in refreshAll\n    self.game_window.update(refreshed_data=refreshed_data)\n'
+2024-12-18T13:33:20 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 1027, in update\n    self.poe_bot.raiseLongSleepException(f"game window width or height aren\'t 1024x768")\n'
+2024-12-18T13:33:20 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 253, in raiseLongSleepException\n    raiseLongSleepException(text)\n'
+2024-12-18T13:33:20 '  File "C:\\p2\\1_host\\utils\\utils.py", line 43, in raiseLongSleepException\n    raise Exception(f\'{text} , sleep 3600*24\')\n'
+2024-12-18T13:35:49 #resurrectAtCheckpoint call 1734500149.4164977
+2024-12-18T13:35:53 resurrect button didnt appear in 4 seconds, stuck
+2024-12-18T13:35:53 'NoneType' object is not callable
+2024-12-18T13:35:53 '  File "poe_2_lost_city.py", line 189, in <module>\n    result = mover.goToPoint(\n'
+2024-12-18T13:35:53 '  File "C:\\p2\\1_host\\utils\\mover.py", line 345, in goToPoint\n    poe_bot.refreshInstanceData()\n'
+2024-12-18T13:35:53 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 219, in refreshInstanceData\n    self.on_death_function()\n'
+2024-12-18T13:35:53 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 255, in defaultOnDeathFunction\n    self.resurrectAtCheckpoint()\n'
+2024-12-18T13:35:53 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 284, in resurrectAtCheckpoint\n    poe_bot.on_stuck_function()\n'
+2024-12-18T13:36:44 #resurrectAtCheckpoint call 1734500204.792012
+2024-12-18T13:36:49 resurrect button didnt appear in 4 seconds, stuck
+2024-12-18T13:36:49 'NoneType' object is not callable
+2024-12-18T13:36:49 '  File "poe_2_lost_city.py", line 84, in <module>\n    poe_bot.refreshAll()\n'
+2024-12-18T13:36:49 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 180, in refreshAll\n    self.refreshInstanceData(refreshed_data=refreshed_data)\n'
+2024-12-18T13:36:49 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 219, in refreshInstanceData\n    self.on_death_function()\n'
+2024-12-18T13:36:49 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 255, in defaultOnDeathFunction\n    self.resurrectAtCheckpoint()\n'
+2024-12-18T13:36:49 '  File "C:\\p2\\1_host\\utils\\gamehelper.py", line 284, in resurrectAtCheckpoint\n    poe_bot.on_stuck_function()\n'
+2024-12-18T13:43:49 No portals
+2024-12-18T13:43:49 '  File "poe_2_lost_city.py", line 246, in <module>\n    poe_bot.helper_functions.getToPortal(check_for_map_device=False)\n'
+2024-12-18T13:43:49 '  File "C:\\p2\\1_host\\utils\\helper_functions.py", line 490, in getToPortal\n    raise Exception("No portals")\n'

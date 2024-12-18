@@ -601,7 +601,7 @@ class SkillWithDelay(Skill):
   def canUse(self, force = False):
     if force != True and time.time() < self.can_be_used_after:
       return False
-    if force != False and time.time() - self.last_use_time < self.internal_cooldown:
+    if force == True and time.time() - self.last_use_time < self.internal_cooldown:
       print(f'[SkillWithDelay {self.display_name}] internal cooldown on force use')
       return False
     return True
@@ -4598,6 +4598,247 @@ class KiteAroundBuild(Build):
   totem, minions, brands
   '''
   pass
+
+class DodgeRoll(SkillWithDelay):
+  def __init__(self, poe_bot, skill_index=3, skill_name='', display_name="DodgeRoll", min_delay=0.1, delay_random=0.1, min_mana_to_use=0, can_use_earlier=True):
+    super().__init__(poe_bot, skill_index, skill_name, display_name, min_delay, delay_random, min_mana_to_use, can_use_earlier)
+    self.skill_key = "DIK_SPACE"
+    self.tap_func = poe_bot.bot_controls.keyboard.pressAndRelease
+    self.press_func = poe_bot.bot_controls.keyboard_pressKey
+    self.release_func = poe_bot.bot_controls.keyboard_releaseKey
+    self.checkIfCanUse = lambda *args, **kwargs: True
+    self.getCastTime = lambda *args, **kwargs: 0.7
+
+class InfernalistZoomancer(Build):
+  '''
+  '''
+  poe_bot: PoeBot
+  def __init__(self,poe_bot: PoeBot) -> None:
+    self.poe_bot = poe_bot
+    
+    self.max_srs_count = 10
+
+    flame_wall_index = 3
+    unearth_index = 4
+    detonate_dead_index = 5
+    offerening_index = 6
+    flammability_index = 7
+
+    self.fire_skills = []
+
+    if flame_wall_index != None:
+      self.flame_wall = SkillWithDelay(poe_bot=poe_bot, skill_index=flame_wall_index, min_delay=random.randint(20,30)/10, display_name="flame_wall", min_mana_to_use=0, can_use_earlier=False)
+      self.fire_skills.append(self.flame_wall)
+
+    if unearth_index != None:
+      self.unearth = SkillWithDelay(poe_bot=poe_bot, skill_index=unearth_index, min_delay=random.randint(20,30)/10, display_name="unearth", min_mana_to_use=0, can_use_earlier=False)
+
+    if detonate_dead_index != None:
+      self.detonate_dead = SkillWithDelay(poe_bot=poe_bot, skill_index=detonate_dead_index, min_delay=random.uniform(3.1, 4.5), display_name="detonate_dead", min_mana_to_use=0, can_use_earlier=False)
+      self.fire_skills.append(self.detonate_dead)
+    
+    if offerening_index != None:
+      self.offering = SkillWithDelay(poe_bot=poe_bot, skill_index=offerening_index, min_delay=random.randint(20,30)/10, display_name="offering", min_mana_to_use=0, can_use_earlier=False)
+
+    if flammability_index != None:
+      self.flammability = SkillWithDelay(poe_bot=poe_bot, skill_index=flammability_index, min_delay=random.randint(20,30)/10, display_name="flammability", min_mana_to_use=0, can_use_earlier=False)
+
+    self.dodge_roll = DodgeRoll(poe_bot=poe_bot)
+
+    super().__init__(poe_bot)
+    self.auto_flasks = AutoFlasks(poe_bot=poe_bot)
+  def useBuffs(self):
+    return False
+  def usualRoutine(self, mover:Mover = None):
+    print(f'calling usual routine')
+    poe_bot = self.poe_bot
+    self.auto_flasks.useFlasks()
+
+    # if we are moving
+    if mover is not None:
+      self.useBuffs()
+      attacking_skill_delay = 2
+
+      nearby_enemies = list(filter(lambda e: e.isInRoi(), poe_bot.game_data.entities.attackable_entities))
+      print(f'nearby_enemies: {nearby_enemies}')
+      really_close_enemies = list(filter(lambda e: e.distance_to_player < 20,nearby_enemies))
+      min_delay = 3
+      if len(really_close_enemies) != 0:
+        min_delay = 2
+        attacking_skill_delay = 0.7
+
+      enemy_to_attack = None
+      if len(really_close_enemies) != 0:
+        enemy_to_attack = really_close_enemies[0]
+      elif len(nearby_enemies):
+        nearby_enemies = sorted(nearby_enemies, key=lambda e: e.distance_to_player)
+        nearby_enemies = list(filter(lambda e: e.isInLineOfSight() is True, nearby_enemies))
+        if len(nearby_enemies) != 0:
+          enemy_to_attack = nearby_enemies[0]
+      
+      if enemy_to_attack is not None:
+        if self.flame_wall and self.flame_wall.last_use_time + attacking_skill_delay < time.time():
+          alive_srs_nearby = list(filter(lambda e: not e.is_hostile and e.life.health.current != 0 and e.distance_to_player < 150 and "Metadata/Monsters/RagingSpirit/RagingSpiritPlayerSummoned" in e.path , self.poe_bot.game_data.entities.all_entities))
+          if len(alive_srs_nearby) < self.max_srs_count:
+            print(f'[Generic summoner] need to raise srs')
+            if self.flame_wall.use(updated_entity=enemy_to_attack) == True:
+              return True
+        if self.detonate_dead and self.detonate_dead.canUse():
+          corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 40)
+          corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+          if len(corpses_around) != 0:
+            corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+            if corpses_around[0].attack_value != 0:
+              if self.detonate_dead.use(updated_entity=corpses_around[0]) != False:
+                return True
+        if self.unearth and self.unearth.canUse():
+          corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 20)
+          corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+          if len(corpses_around) != 0:
+            corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+            if corpses_around[0].attack_value != 0:
+              if self.unearth.use(updated_entity=corpses_around[0]) != False:
+                return True
+            
+      p0 = (mover.grid_pos_to_step_x, mover.grid_pos_to_step_y)
+      p1 = (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y)
+      
+      extremley_close_entities = list(filter(lambda e: e.distance_to_player < 10, really_close_enemies))
+      enemies_on_way = list(filter(lambda e: e.distance_to_player < 15 and getAngle(p0, p1, (e.grid_position.x, e.grid_position.y), abs_180=True) < 45, really_close_enemies))
+      if extremley_close_entities or enemies_on_way:
+        if self.dodge_roll.use() == True:
+          return True
+      # # use movement skill
+      # if self.movement_skill and mover.distance_to_target > 50:
+      #   if self.movement_skill.use(mover.grid_pos_to_step_x, mover.grid_pos_to_step_y, wait_for_execution=False) is True:
+      #     return True
+    
+    # if we are staying and waiting for smth
+    else:
+      self.staticDefence()
+
+    return False
+  def prepareToFight(self, entity: Entity):
+    print(f'[InfernalistZoomancer.prepareToFight] call {time.time()}')
+    for i in range(random.randint(2,3)):
+      self.poe_bot.refreshInstanceData()
+      self.auto_flasks.useFlasks()
+      updated_entity = next( (e for e in self.poe_bot.game_data.entities.all_entities if e.id == entity.id), None)
+      if updated_entity is None:
+        break
+
+      self.flame_wall.use(updated_entity=updated_entity)
+    return True
+  def killUsual(self, entity:Entity, is_strong = False, max_kill_time_sec = random.randint(200,300)/10, *args, **kwargs):
+    print(f'#build.killUsual {entity}')
+    poe_bot = self.poe_bot
+    mover = self.mover
+
+    entity_to_kill_id = entity.id
+    debuff_use_time = 0
+
+    self.auto_flasks.useFlasks()
+    
+    min_distance = 70 # distance which is ok to start attacking
+    keep_distance = 15 # if our distance is smth like this, kite
+
+    entity_to_kill = next((e for e in poe_bot.game_data.entities.attackable_entities if e.id == entity_to_kill_id), None)
+    if not entity_to_kill:
+      print('cannot find desired entity to kill')
+      return True
+
+    print(f'entity_to_kill {entity_to_kill}')
+    
+    if entity_to_kill.life.health.current < 0:
+      print('entity is dead')
+      return True
+
+    distance_to_entity = dist( (entity_to_kill.grid_position.x, entity_to_kill.grid_position.y), (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y) ) 
+    print(f'distance_to_entity {distance_to_entity} in killUsual')
+    if distance_to_entity > min_distance:
+      print('getting closer in killUsual ')
+      return False
+    
+    if entity_to_kill.isInLineOfSight() is False:
+      print('entity_to_kill.isInLineOfSight() is False')
+      return False
+
+
+    start_time = time.time()
+    entity_to_kill.hover(wait_till_executed=False)
+    poe_bot.last_action_time = 0
+    kite_distance = random.randint(35,45)
+    res = True
+    reversed_run = random.choice([True, False])
+
+
+
+    while True:
+      skill_used = False
+      poe_bot.refreshInstanceData()
+      self.auto_flasks.useFlasks()
+      if self.poe_bot.game_data.player.life.health.getPercentage() < self.auto_flasks.hp_thresh:
+        pass #TODO kite?
+
+      entity_to_kill = next((e for e in poe_bot.game_data.entities.attackable_entities if e.id == entity_to_kill_id), None)
+      if not entity_to_kill:
+        print('cannot find desired entity to kill')
+        break
+      print(f'entity_to_kill {entity_to_kill}')
+      if entity_to_kill.life.health.current < 1:
+        print('entity is dead')
+        break
+
+      distance_to_entity = dist( (entity_to_kill.grid_position.x, entity_to_kill.grid_position.y), (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y) ) 
+      print(f'distance_to_entity {distance_to_entity} in killUsual')
+      if distance_to_entity > min_distance:
+        print('getting closer in killUsual ')
+        break
+      current_time = time.time()
+      skill_used = self.useBuffs()
+      skill_use_delay = random.randint(20,30)/10
+      print(f'skill_use_delay {skill_use_delay}')
+
+
+
+
+      if skill_used is False and self.flame_wall and self.flame_wall.last_use_time + skill_use_delay < time.time():
+        alive_srs_nearby = list(filter(lambda e: not e.is_hostile and e.life.health.current != 0 and e.distance_to_player < 150 and "Metadata/Monsters/RagingSpirit/RagingSpiritPlayerSummoned" in e.path , self.poe_bot.game_data.entities.all_entities))
+        if len(alive_srs_nearby) < self.max_srs_count:
+          print(f'[Generic summoner] need to raise srs')
+          if self.flame_wall.use(updated_entity=entity_to_kill) == True:
+            skill_used = True
+      if skill_used is False and self.detonate_dead and self.detonate_dead.canUse():
+        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 40)
+        corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+        if len(corpses_around) != 0:
+          corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+          if corpses_around[0].attack_value != 0:
+            if self.detonate_dead.use(updated_entity=corpses_around[0]) != False:
+              skill_used = True
+      if skill_used is False and self.unearth and self.unearth.canUse():
+        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 20)
+        corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+        if len(corpses_around) != 0:
+          corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+          if corpses_around[0].attack_value != 0:
+            if self.unearth.use(updated_entity=corpses_around[0]) != False:
+              skill_used = True
+
+
+      if skill_used != True:
+        print('kiting')
+        point = self.poe_bot.game_data.terrain.pointToRunAround(entity_to_kill.grid_position.x, entity_to_kill.grid_position.y, kite_distance+random.randint(-1,1), check_if_passable=True, reversed=reversed_run)
+        mover.move(grid_pos_x = point[0], grid_pos_y = point[1])
+
+
+
+
+      if current_time  > start_time + max_kill_time_sec:
+        print('exceed time')
+        break
+    return res
+
 
 
 COMBAT_BUILDS = {

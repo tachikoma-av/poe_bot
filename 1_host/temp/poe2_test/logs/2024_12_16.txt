@@ -99,3 +99,91 @@
 2024-12-16T20:32:18 '  File "poe_2_lost_city.py", line 497, in <module>\n    raise 404\n'
 2024-12-16T20:32:40 exceptions must derive from BaseException
 2024-12-16T20:32:40 '  File "poe_2_lost_city.py", line 497, in <module>\n    raise 404\n'
+2024-12-16T22:43:15 exceptions must derive from BaseException
+2024-12-16T22:43:15 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:43:35 exceptions must derive from BaseException
+2024-12-16T22:43:35 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:43:59 exceptions must derive from BaseException
+2024-12-16T22:43:59 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:44:19 exceptions must derive from BaseException
+2024-12-16T22:44:19 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:44:40 exceptions must derive from BaseException
+2024-12-16T22:44:40 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:45:00 exceptions must derive from BaseException
+2024-12-16T22:45:00 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:45:22 exceptions must derive from BaseException
+2024-12-16T22:45:22 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:45:43 exceptions must derive from BaseException
+2024-12-16T22:45:43 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:46:04 exceptions must derive from BaseException
+2024-12-16T22:46:04 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:46:25 exceptions must derive from BaseException
+2024-12-16T22:46:25 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:46:45 exceptions must derive from BaseException
+2024-12-16T22:46:45 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:47:06 exceptions must derive from BaseException
+2024-12-16T22:47:06 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:47:25 exceptions must derive from BaseException
+2024-12-16T22:47:25 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:47:45 exceptions must derive from BaseException
+2024-12-16T22:47:45 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:48:07 exceptions must derive from BaseException
+2024-12-16T22:48:07 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:48:29 exceptions must derive from BaseException
+2024-12-16T22:48:29 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:48:49 exceptions must derive from BaseException
+2024-12-16T22:48:49 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:49:10 exceptions must derive from BaseException
+2024-12-16T22:49:10 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:49:23 exceptions must derive from BaseException
+2024-12-16T22:49:23 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T22:59:45 exceptions must derive from BaseException
+2024-12-16T22:59:45 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T23:00:16 exceptions must derive from BaseException
+2024-12-16T23:00:16 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T23:00:39 exceptions must derive from BaseException
+2024-12-16T23:00:39 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T23:00:53 exceptions must derive from BaseException
+2024-12-16T23:00:53 '  File "poe_2_lost_city.py", line 495, in <module>\n    raise 404\n'
+2024-12-16T23:02:49 exceptions must derive from BaseException
+2024-12-16T23:02:49 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:03:11 exceptions must derive from BaseException
+2024-12-16T23:03:11 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:03:31 exceptions must derive from BaseException
+2024-12-16T23:03:31 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:03:51 exceptions must derive from BaseException
+2024-12-16T23:03:51 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:04:10 exceptions must derive from BaseException
+2024-12-16T23:04:10 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:04:31 exceptions must derive from BaseException
+2024-12-16T23:04:31 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:04:51 exceptions must derive from BaseException
+2024-12-16T23:04:51 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:05:11 exceptions must derive from BaseException
+2024-12-16T23:05:11 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:05:31 exceptions must derive from BaseException
+2024-12-16T23:05:31 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:05:57 exceptions must derive from BaseException
+2024-12-16T23:05:57 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:06:18 exceptions must derive from BaseException
+2024-12-16T23:06:18 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:06:39 exceptions must derive from BaseException
+2024-12-16T23:06:39 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:06:58 exceptions must derive from BaseException
+2024-12-16T23:06:58 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:07:19 exceptions must derive from BaseException
+2024-12-16T23:07:19 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:07:40 exceptions must derive from BaseException
+2024-12-16T23:07:40 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:08:00 exceptions must derive from BaseException
+2024-12-16T23:08:00 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:08:17 exceptions must derive from BaseException
+2024-12-16T23:08:17 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:08:29 exceptions must derive from BaseException
+2024-12-16T23:08:29 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:08:42 exceptions must derive from BaseException
+2024-12-16T23:08:42 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:08:56 exceptions must derive from BaseException
+2024-12-16T23:08:56 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'
+2024-12-16T23:09:10 exceptions must derive from BaseException
+2024-12-16T23:09:10 '  File "poe_2_lost_city.py", line 496, in <module>\n    raise 404\n'

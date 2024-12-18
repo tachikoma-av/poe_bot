@@ -330,6 +330,43 @@ class PoeBot:
 
     print(f'#resurrectAtCheckpoint return {time.time()}')
     time.sleep(random.randint(20,40)/10)
+class Poe2Bot(PoeBot):
+  def __init__(self, unique_id, remote_ip, max_actions_per_second=random.randint(8, 10), debug=False, password=None, group_id='solo', coordinator_ip="127.0.0.1"):
+    super().__init__(unique_id, remote_ip, max_actions_per_second, debug, password, group_id, coordinator_ip)
+    
+    # differences
+    self.ui.resurrect_panel.clickResurrect = self.clickResurrect_POE2
+  
+  def clickResurrect_POE2(self, town = False):
+    poe_bot = self
+    pos_x, pos_y = random.randint(430,580), random.randint(560,570)
+    pos_x, pos_y = poe_bot.convertPosXY(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.click()
+    time.sleep(random.randint(30,60)/100)
+    return True
+  
+  def respawnAtCheckPoint(self):
+    poe_bot = self
+    poe_bot.bot_controls.keyboard.tap('DIK_ESCAPE')
+    time.sleep(random.randint(40,80)/100)
+    pos_x, pos_y = random.randint(450,550), random.randint(289,290)
+    pos_x, pos_y = poe_bot.convertPosXY(pos_x, pos_y)
+    poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
+    time.sleep(random.randint(40,80)/100)
+    poe_bot.bot_controls.mouse.click()
+    time.sleep(random.randint(30,60)/100)
+
+    pos_x, pos_y = random.randint(580,640), random.randint(408,409)
+    pos_x, pos_y = poe_bot.convertPosXY(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.click()
+    time.sleep(random.randint(30,60)/100)
+    return True
 class Terrain:
   poe_bot:PoeBot
   terrain_image: np.ndarray # np array
@@ -444,14 +481,14 @@ class Terrain:
     112
     '''
     points_around = [
-      [pos_x+distance_to_point,pos_y],
-      [int(pos_x+distance_to_point*0.7),int(pos_y-distance_to_point*0.7)],
-      [pos_x,pos_y-distance_to_point],
-      [int(pos_x-distance_to_point*0.7),int(pos_y-distance_to_point*0.7)],
-      [pos_x-distance_to_point,pos_y],
-      [int(pos_x-distance_to_point*0.7),int(pos_y+distance_to_point*0.7)],
-      [pos_x,pos_y+distance_to_point],
-      [int(pos_x+distance_to_point*0.7),int(pos_y+distance_to_point*0.7)],
+      [pos_x+distance_to_point,pos_y], # 90
+      [int(pos_x+distance_to_point*0.7),int(pos_y-distance_to_point*0.7)], # 45
+      [pos_x,pos_y-distance_to_point], # 0
+      [int(pos_x-distance_to_point*0.7),int(pos_y-distance_to_point*0.7)], # 315
+      [pos_x-distance_to_point,pos_y], # 270
+      [int(pos_x-distance_to_point*0.7),int(pos_y+distance_to_point*0.7)], # 215
+      [pos_x,pos_y+distance_to_point], # 180
+      [int(pos_x+distance_to_point*0.7),int(pos_y+distance_to_point*0.7)], # 135
     ]
     if reversed is True:
       points_around.reverse()
@@ -463,14 +500,14 @@ class Terrain:
     if current_pos_index > len(points_around)-1: current_pos_index -= len(points_around)
     point = points_around[current_pos_index]
     if check_if_passable is True:
-      if self.checkIfPointPassable(point[0], point[1], radius=0) is False:
+      if self.checkIfPointPassable(point[0], point[1], radius=1) is False:
         start_index = current_pos_index+1
         point_found = False
         for i in range(len(points_around)-2):
           current_index = start_index + i
           if current_index > len(points_around)-1: current_index -= len(points_around)
           point = points_around[current_index]
-          if self.checkIfPointPassable(point[0], point[1], radius=5) is True:
+          if self.checkIfPointPassable(point[0], point[1], radius=1) is True:
             point_found = True
             break
         if point_found is True:

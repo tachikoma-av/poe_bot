@@ -5,6 +5,10 @@
 !setup.py
 !readme.md
 
+!readmes/
+!readmes/**
+
+
 !0_guest/
 !0_guest/**
 
@@ -15,7 +19,8 @@
 # poe 1 hud plugin 
 !hud_dpb/ExileApi/Core/Plugins/ShareData/**
 
-# poe 2 hud 
+# poe 2 hud
+!hud_dpb/ExileCore2/Plugins/Compiled/ShareData/**
 !hud_dpb/ExileCore2/Plugins/Source/ShareData/**
 
 

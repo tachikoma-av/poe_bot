@@ -1,0 +1,2 @@
+2024-12-18T11:52:28 #resurrectAtCheckpoint call 1734493948.4677606
+2024-12-18T11:52:32 resurrect button didnt appear in 4 seconds, stuck
