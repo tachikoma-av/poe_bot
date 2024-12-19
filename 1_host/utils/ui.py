@@ -1,7 +1,7 @@
 from __future__ import annotations
 import typing
 if typing.TYPE_CHECKING:
-  from .gamehelper import PoeBot
+  from .gamehelper import PoeBot, Poe2Bot
 
 from typing import List
 
@@ -142,10 +142,8 @@ class PurchaseWindowItem(Item):
   def __init__(self, poe_bot: PoeBot, item_raw: dict) -> None:
     super().__init__(poe_bot, item_raw)
     self.screen_position = Posx1x2y1y2(*item_raw['s'])
-
 class TabSwitchButton:
   pass
-
 class Ui:
   poe_bot:PoeBot
   inventory:Inventory
@@ -615,7 +613,6 @@ class IncursionUi:
       return_str +=  f"\ncurrent room name: {self.current_room} rewards: {self.rewards} architects:{self.architects_names}"
       return_str +=  f"\ncurrent room can be connected to rooms {self.current_room_can_be_connected_to_names}"
     return str(return_str)
-
 class NpcDialogueUi:
   poe_bot:PoeBot
   raw:dict
@@ -648,14 +645,11 @@ class NpcDialogueUi:
       self.choices = list(map(lambda l_raw: NpcDialogueLineChoice(poe_bot=self.poe_bot, raw=l_raw),refreshed_data['ch']))
     elif refreshed_data['t'] != None:
       self.text = refreshed_data['t']
-
-
 class NpcDialogueLineChoice(UiElement):
   def __init__(self, poe_bot: PoeBot, raw: dict) -> None:
     self.screen_zone = Posx1x2y1y2(*raw['sz'])
     self.text:str = raw['t']
     super().__init__(poe_bot, self.screen_zone)
-
 class EscapeControlPanel:
   poe_bot:PoeBot
   charecter_selection_button_zone = [425,600,333,343] # [x1 x2 y1 y2]
@@ -1034,7 +1028,7 @@ class BanditDialogue:
     return raw_data
 class MapDevice:
   poe_bot:PoeBot
-  activate_button_pos:PosXY
+  activate_button_pos:Posx1x2y1y2
   items:List[MapDeviceItem] = []
   placed_items:List[dict] = []
   is_opened = False
@@ -1042,7 +1036,6 @@ class MapDevice:
   map_device_craft_mod_window_pos: Posx1x2y1y2
   kirak_missions_count: List[int] # [white, yellowe, red]
   raw:dict
-  # activate_button_pos: Posx1x2y1y2
   def __init__(self, poe_bot:PoeBot) -> None:
     self.poe_bot = poe_bot
   def getInfo(self):
@@ -1052,7 +1045,7 @@ class MapDevice:
     self.number_of_slots = raw_data['slots_count']
     if self.is_opened != False:
       activate_button_position = raw_data['a_b_p']
-      self.activate_button_pos = PosXY( int((activate_button_position['x1']+activate_button_position['x2'])/2), int((activate_button_position['y1']+activate_button_position['y2'])/2))
+      self.activate_button_pos = Posx1x2y1y2(activate_button_position["x1"], activate_button_position["x2"], activate_button_position["y1"], activate_button_position["y2"])
     else:
       self.activate_button_pos = None
     return raw_data
@@ -1071,7 +1064,7 @@ class MapDevice:
       # 274 607
     if self.is_opened != False:
       activate_button_position = updated_data['a_b_p']
-      self.activate_button_pos = PosXY( int((activate_button_position['x1']+activate_button_position['x2'])/2), int((activate_button_position['y1']+activate_button_position['y2'])/2))
+      self.activate_button_pos = Posx1x2y1y2(activate_button_position["x1"], activate_button_position["x2"], activate_button_position["y1"], activate_button_position["y2"])
       self.items = []
       for item in updated_data['items']:
         if item['Name'] != None:
@@ -1118,11 +1111,11 @@ class MapDevice:
     return True
   def checkIfActivateButtonIsActive(self):
     poe_bot = self.poe_bot
-    activate_button_position = self.getInfo()['a_b_p']
-    x1 = activate_button_position['x1'] +5
-    x2 = activate_button_position['x2'] -5
-    y1 = activate_button_position['y1'] +5
-    y2 = activate_button_position['y2'] -5
+    self.update()
+    x1 = self.activate_button_pos.x1 +5
+    x2 = self.activate_button_pos.x2 -5
+    y1 = self.activate_button_pos.y1 +5
+    y2 = self.activate_button_pos.y2 -5
     game_img = poe_bot.getImage()
     activate_button_img = game_img[y1:y2, x1:x2]
     # print('activate_button_img')
@@ -1137,8 +1130,8 @@ class MapDevice:
   def activate(self):
     if self.checkIfActivateButtonIsActive() is False:
       self.poe_bot.raiseLongSleepException("self.checkIfActivateButtonIsActive() is False")
-    activate_button_pos = self.activate_button_pos
-    pos_x,pos_y = self.poe_bot.convertPosXY(activate_button_pos.x, activate_button_pos.y, safe=False)
+    activate_button_pos = self.activate_button_pos.getCenter()
+    pos_x,pos_y = self.poe_bot.convertPosXY(activate_button_pos[0], activate_button_pos[1], safe=False)
     print(f"activate button pos {pos_x, pos_y}")
     print(f"activate button pos {self.activate_button_pos}")
     print(f"activate button pos {self.raw}")
@@ -1214,6 +1207,50 @@ class MapDevice:
     else:
       print(f'[Map device] option {option} doesnt exist in crafting mods')
       return False
+class MapDeviceMap(UiElement):
+  def __init__(self, poe_bot, raw):
+    self.screen_zone = Posx1x2y1y2(*raw['sz'])
+    self.screen_pos = PosXY(int( (self.screen_zone.x1 + self.screen_zone.x2) / 2), int( (self.screen_zone.y1 + self.screen_zone.y2) / 2))
+    self.name:str = raw['name']
+    self.name_raw:str = raw['name_raw']
+    self.icons:List[str] = raw['icons']
+
+    # self.has_deli = "smth" in self.icons
+    # if "smth" in self.icons:
+    #   self.
+
+    super().__init__(poe_bot, self.screen_zone, self.screen_pos)
+
+class MapDevice_Poe2(MapDevice):
+  def __init__(self, poe_bot:Poe2Bot):
+    self.poe_bot = poe_bot
+  def reset(self):
+    self.is_opened = False
+    self.avaliable_maps = []
+    self.place_map_window_opened = False
+    self.place_map_window_screenzone:Posx1x2y1y2 = None
+    self.place_map_window_activate_button_screen_zone:Posx1x2y1y2 = None
+    self.place_map_window_items:List[MapDeviceItem] = []
+
+  def update(self, updated_data=None):
+    if updated_data == None:
+      updated_data = self.poe_bot.backend.mapDeviceInfo()
+    self.raw = updated_data
+    self.reset()
+    self.is_opened:bool = updated_data['wm_o']
+    if self.is_opened == False:
+      return
+    self.avaliable_maps = list(map(lambda m_raw: MapDeviceMap(self.poe_bot, m_raw), updated_data["av_m"]))
+    self.place_map_window_opened = updated_data["pmw_o"]
+    if self.place_map_window_opened:
+      self.place_map_window_screenzone = Posx1x2y1y2(*updated_data["pmw_sz"])
+      self.place_map_window_activate_button_screen_zone = Posx1x2y1y2(*updated_data["pmw_ab_sz"])
+      self.place_map_window_items = list(map(lambda i_raw: MapDeviceItem(self.poe_bot, i_raw), updated_data["pmw_i"]))
+  
+  def moveScreenTo(self, map_device_map_element: MapDeviceMap):
+    pass
+
+
 class Inventory:
   '''
   - responsible for all the interactions with inventory
