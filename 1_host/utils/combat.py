@@ -4599,6 +4599,7 @@ class KiteAroundBuild(Build):
   '''
   pass
 
+# poe2
 class DodgeRoll(SkillWithDelay):
   def __init__(self, poe_bot, skill_index=3, skill_name='', display_name="DodgeRoll", min_delay=0.1, delay_random=0.1, min_mana_to_use=0, can_use_earlier=True):
     super().__init__(poe_bot, skill_index, skill_name, display_name, min_delay, delay_random, min_mana_to_use, can_use_earlier)
@@ -4618,29 +4619,38 @@ class InfernalistZoomancer(Build):
     
     self.max_srs_count = 10
 
-    flame_wall_index = 3
-    unearth_index = 4
-    detonate_dead_index = 5
-    offerening_index = 6
-    flammability_index = 7
+    flame_wall_internal_name = "firewall"
+    flame_wall_index = flame_wall_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(flame_wall_internal_name) 
+    unearth_index = False
+
+    #TODO minion frenzy command
+    #TODO minion gas arrow command
+
+    dd_internal_name = "detonate_dead"
+    detonate_dead_index = dd_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(dd_internal_name) 
+    offering_internal_name = "paint_offering"
+    offerening_index = offering_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(offering_internal_name) 
+    flammability_internal_name = "fire_weakness"
+    flammability_index = flammability_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(flammability_internal_name) 
+
 
     self.fire_skills = []
 
-    if flame_wall_index != None:
+    if flame_wall_index != False:
       self.flame_wall = SkillWithDelay(poe_bot=poe_bot, skill_index=flame_wall_index, min_delay=random.randint(20,30)/10, display_name="flame_wall", min_mana_to_use=0, can_use_earlier=False)
       self.fire_skills.append(self.flame_wall)
 
-    if unearth_index != None:
+    if unearth_index != False:
       self.unearth = SkillWithDelay(poe_bot=poe_bot, skill_index=unearth_index, min_delay=random.randint(20,30)/10, display_name="unearth", min_mana_to_use=0, can_use_earlier=False)
 
-    if detonate_dead_index != None:
+    if detonate_dead_index != False:
       self.detonate_dead = SkillWithDelay(poe_bot=poe_bot, skill_index=detonate_dead_index, min_delay=random.uniform(3.1, 4.5), display_name="detonate_dead", min_mana_to_use=0, can_use_earlier=False)
       self.fire_skills.append(self.detonate_dead)
     
-    if offerening_index != None:
+    if offerening_index != False:
       self.offering = SkillWithDelay(poe_bot=poe_bot, skill_index=offerening_index, min_delay=random.randint(20,30)/10, display_name="offering", min_mana_to_use=0, can_use_earlier=False)
 
-    if flammability_index != None:
+    if flammability_index != False:
       self.flammability = SkillWithDelay(poe_bot=poe_bot, skill_index=flammability_index, min_delay=random.randint(20,30)/10, display_name="flammability", min_mana_to_use=0, can_use_earlier=False)
 
     self.dodge_roll = DodgeRoll(poe_bot=poe_bot)
