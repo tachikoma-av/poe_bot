@@ -334,9 +334,11 @@ class Poe2Bot(PoeBot):
   def __init__(self, unique_id, remote_ip, max_actions_per_second=random.randint(8, 10), debug=False, password=None, group_id='solo', coordinator_ip="127.0.0.1"):
     super().__init__(unique_id, remote_ip, max_actions_per_second, debug, password, group_id, coordinator_ip)
     
+    from .ui import MapDevice_Poe2
     # differences
     self.ui.resurrect_panel.clickResurrect = self.clickResurrect_POE2
-  
+    self.ui.map_device = MapDevice_Poe2(self)
+    
   def clickResurrect_POE2(self, town = False):
     poe_bot = self
     pos_x, pos_y = random.randint(430,580), random.randint(560,570)

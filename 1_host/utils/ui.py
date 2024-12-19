@@ -1215,12 +1215,12 @@ class MapDeviceMap(UiElement):
     self.name_raw:str = raw['name_raw']
     self.icons:List[str] = raw['icons']
 
+    #TODO types of map 
     # self.has_deli = "smth" in self.icons
     # if "smth" in self.icons:
     #   self.
 
     super().__init__(poe_bot, self.screen_zone, self.screen_pos)
-
 class MapDevice_Poe2(MapDevice):
   def __init__(self, poe_bot:Poe2Bot):
     self.poe_bot = poe_bot
