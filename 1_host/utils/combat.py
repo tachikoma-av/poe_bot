@@ -4623,6 +4623,28 @@ class InfernalistZoomancer(Build):
     flame_wall_index = flame_wall_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(flame_wall_internal_name) 
     unearth_index = False
 
+    self.minion_reaver_enrage = None
+
+
+    minion_command_internal_name = "minion_command"
+    for skill_index in range(len(self.poe_bot.game_data.skills.internal_names)):
+      skill_name_raw = self.poe_bot.game_data.skills.internal_names[skill_index]
+      if skill_name_raw != minion_command_internal_name:
+        continue
+      skill_base_cast_time = next( (sd for sd in poe_bot.game_data.skills.descriptions[skill_index] if 'BaseSpellCastTimeMs' in sd.keys()), None)
+      if skill_base_cast_time == None:
+        continue
+      elif skill_base_cast_time == 600:
+        print(f'[InfernalistZoomancer.__init__] found minion_arconist_dd_index {skill_index}')
+        self.minion_arconist_dd = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_arconist_dd", can_use_earlier=False)
+      elif skill_base_cast_time == 1000:
+        print(f'[InfernalistZoomancer.__init__] found minion_reaver_enrage_index {skill_index}')
+        self.minion_reaver_enrage = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_reaver_enrage", can_use_earlier=False)
+      elif skill_base_cast_time == 1250:
+        print(f'[InfernalistZoomancer.__init__] found minion_sniper_gas_arrow_index {skill_index}')
+        self.minion_sniper_gas_arrow = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_sniper_gas_arrow", can_use_earlier=False)
+
+
     #TODO minion frenzy command
     #TODO minion gas arrow command
 
@@ -4637,21 +4659,21 @@ class InfernalistZoomancer(Build):
     self.fire_skills = []
 
     if flame_wall_index != False:
-      self.flame_wall = SkillWithDelay(poe_bot=poe_bot, skill_index=flame_wall_index, min_delay=random.randint(20,30)/10, display_name="flame_wall", min_mana_to_use=0, can_use_earlier=False)
+      self.flame_wall = SkillWithDelay(poe_bot=poe_bot, skill_index=flame_wall_index, min_delay=random.randint(20,30)/10, display_name="flame_wall", can_use_earlier=False)
       self.fire_skills.append(self.flame_wall)
 
     if unearth_index != False:
-      self.unearth = SkillWithDelay(poe_bot=poe_bot, skill_index=unearth_index, min_delay=random.randint(20,30)/10, display_name="unearth", min_mana_to_use=0, can_use_earlier=False)
+      self.unearth = SkillWithDelay(poe_bot=poe_bot, skill_index=unearth_index, min_delay=random.randint(20,30)/10, display_name="unearth", can_use_earlier=False)
 
     if detonate_dead_index != False:
-      self.detonate_dead = SkillWithDelay(poe_bot=poe_bot, skill_index=detonate_dead_index, min_delay=random.uniform(3.1, 4.5), display_name="detonate_dead", min_mana_to_use=0, can_use_earlier=False)
+      self.detonate_dead = SkillWithDelay(poe_bot=poe_bot, skill_index=detonate_dead_index, min_delay=random.uniform(3.1, 4.5), display_name="detonate_dead", can_use_earlier=False)
       self.fire_skills.append(self.detonate_dead)
     
     if offerening_index != False:
-      self.offering = SkillWithDelay(poe_bot=poe_bot, skill_index=offerening_index, min_delay=random.randint(20,30)/10, display_name="offering", min_mana_to_use=0, can_use_earlier=False)
+      self.offering = SkillWithDelay(poe_bot=poe_bot, skill_index=offerening_index, min_delay=random.randint(20,30)/10, display_name="offering", can_use_earlier=False)
 
     if flammability_index != False:
-      self.flammability = SkillWithDelay(poe_bot=poe_bot, skill_index=flammability_index, min_delay=random.randint(20,30)/10, display_name="flammability", min_mana_to_use=0, can_use_earlier=False)
+      self.flammability = SkillWithDelay(poe_bot=poe_bot, skill_index=flammability_index, min_delay=random.randint(20,30)/10, display_name="flammability", can_use_earlier=False)
 
     self.dodge_roll = DodgeRoll(poe_bot=poe_bot)
 

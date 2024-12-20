@@ -302,3 +302,16 @@ class Mouse:
       time.sleep(0.01)
   def click(self, button = "left", delay = None, wait_till_executed = True):
     self.pressAndRelease(button=button, delay = delay, wait_till_executed=wait_till_executed)
+  def drag(self, p0, p1):
+    '''
+    - p0 List[x,y]
+    - p1 List[x,y]
+    '''
+    self.setPosSmooth(p0[0], p0[1])
+    time.sleep(random.uniform(0.15, 0.4))
+    self.press()
+    time.sleep(random.uniform(0.15, 0.4))
+    self.setPosSmooth(p1[0], p1[1])
+    time.sleep(random.uniform(0.15, 0.4))
+    self.release()
+    return
