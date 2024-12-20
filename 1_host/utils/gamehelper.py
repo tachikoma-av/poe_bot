@@ -1026,7 +1026,7 @@ class GameWindow:
     self.width = self.pos_x2 - self.pos_x
     self.height = self.pos_y2 - self.pos_y
     if self.poe_bot.check_resolution and (self.width != 1024 or self.height != 768):
-      self.poe_bot.raiseLongSleepException(f"game window width or height aren't 1024x768")
+      self.poe_bot.raiseLongSleepException(f"game window width or height are {self.width}x{self.height} rather than 1024x768")
     # X, Y
     self.center_point = [int(self.width/2), int(self.height/2)]
     self.borders = [
