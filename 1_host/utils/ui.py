@@ -1215,11 +1215,28 @@ class MapDeviceMap(UiElement):
     self.name_raw:str = raw['name_raw']
     self.icons:List[str] = raw['icons']
 
-    #TODO types of map 
-    # self.has_deli = "smth" in self.icons
-    # if "smth" in self.icons:
-    #   self.
+    self.is_boss = False
+    self.is_breach = False
+    self.is_expedition = False
+    self.is_ritual = False
+    self.is_delirium = False
+    self.is_corruption = False
+    self.is_irradiated = False
+    self.is_unique = False
+    self.is_hideout = False
+    self.is_trader = False
 
+    for icon in self.icons:
+      if "AtlasIconContentMapBoss" in icon: self.is_boss = True 
+      if "AtlasIconContentBreach" in icon: self.is_breach = True 
+      if "AtlasIconContentExpedition" in icon: self.is_expedition = True 
+      if "AtlasIconContentRitual" in icon: self.is_ritual = True 
+      if "AtlasIconContentDelirium" in icon: self.is_delirium = True 
+      if "AtlasIconContentCorruption" in icon: self.is_corruption = True 
+      if "AtlasIconContentIrradiated" in icon: self.is_irradiated = True 
+      if "AtlasIconContentUniqueMap" in icon: self.is_unique = True 
+      if "AtlasIconContentHideout" in icon: self.is_hideout = True 
+      if "AtlasIconContentTrader" in icon: self.is_trader = True 
     super().__init__(poe_bot, self.screen_zone, self.screen_pos)
 class MapDevice_Poe2(MapDevice):
   def __init__(self, poe_bot:Poe2Bot):
