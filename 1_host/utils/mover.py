@@ -32,10 +32,10 @@ class Mover:
     self.setMoveType(move_type=move_type)
   def setMoveType(self, move_type):
     if move_type == "mouse":
-      self.move = self.moveUsingMouse
+      self.move_func = self.moveUsingMouse
       self.extra_points_count = 4
     elif move_type == "wasd":
-      self.move = self.moveWASD
+      self.move_func = self.moveWASD
       self.extra_points_count = 0
     else:
       raise Exception(f'unknown move type {move_type}, supposed to be either "mouse" or "wasd"')
@@ -616,6 +616,8 @@ class Mover:
       )
       self.reset()
       return res
+  def move(self, grid_pos_x = None, grid_pos_y = None, screen_pos_x = None, screen_pos_y = None):
+    self.move_func(grid_pos_x,grid_pos_y, screen_pos_x, screen_pos_y)
   def moveUsingMouse(self, grid_pos_x = None, grid_pos_y = None, screen_pos_x = None, screen_pos_y = None):
     poe_bot = self.poe_bot
     bot_controls = poe_bot.bot_controls
