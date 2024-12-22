@@ -259,6 +259,7 @@ public class MapDeviceCraftMod
 public class WorldMapEndGameMapObj
 {
     public List<int> sz { get; set; } // label screen zone x1 x2 y1 y2
+    public int id { get; set; }
     public string name { get; set; }
     public string name_raw { get; set; }
     public List<string> icons { get; set; }
@@ -266,6 +267,7 @@ public class WorldMapEndGameMapObj
 
 public class GetMapDeviceInfoObject
 {
+    public bool ap_o { get; set; } // atlas_panel_opened
     public bool wm_o { get; set; } // world_map_opened
     public List<WorldMapEndGameMapObj> av_m { get; set; } // avaliable_maps
     public bool pmw_o { get; set; } // place_map_window_opened

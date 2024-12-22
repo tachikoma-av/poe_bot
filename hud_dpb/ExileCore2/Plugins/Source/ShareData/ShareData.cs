@@ -1440,6 +1440,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     public GetMapDeviceInfoObject mapDeviceInfo(){
         GetMapDeviceInfoObject map_device_info = new GetMapDeviceInfoObject();
         var atlas_panel_object = GameController.IngameState.IngameUi.WorldMap.AtlasPanel;
+        map_device_info.ap_o = GameController.IngameState.IngameUi.WorldMap.IsVisible;
         map_device_info.wm_o = atlas_panel_object.IsVisible;
         if (atlas_panel_object.IsVisible == false){
             return map_device_info;
@@ -1457,6 +1458,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             WorldMapEndGameMapObj map_obj = new WorldMapEndGameMapObj();
             map_obj.name = mapElement.Area.Name;
             map_obj.name_raw = mapElement.Area.Id;
+            map_obj.id = mapElement.IndexInParent ?? 0;
 
             var el_rect = mapElement.GetClientRect();
             map_obj.sz = new List<int> {
