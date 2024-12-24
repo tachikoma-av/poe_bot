@@ -1,3 +1,0 @@
-2024-12-15T11:19:34 #resurrectAtCheckpoint call 1734232774.4668324
-2024-12-15T13:11:16 game window width or height aren't 1024x768
-2024-12-15T18:55:45 #resurrectAtCheckpoint call 1734260145.1676564

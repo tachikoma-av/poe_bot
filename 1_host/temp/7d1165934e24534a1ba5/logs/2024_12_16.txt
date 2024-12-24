@@ -1,7 +1,0 @@
-2024-12-16T09:32:42 #resurrectAtCheckpoint call 1734312762.5358536
-2024-12-16T11:39:19 #resurrectAtCheckpoint call 1734320359.8479528
-2024-12-16T12:05:34 #resurrectAtCheckpoint call 1734321934.2714396
-2024-12-16T12:12:55 stuck in goToPoint
-2024-12-16T12:12:55 we are stuck hard, help!
-2024-12-16T13:47:10 #resurrectAtCheckpoint call 1734328030.028239
-2024-12-16T13:49:07 #resurrectAtCheckpoint call 1734328147.4697986

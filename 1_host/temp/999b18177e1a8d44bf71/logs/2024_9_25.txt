@@ -1,5 +1,0 @@
-2024-09-25T13:46:28 couldnt check the key
-2024-09-25T13:46:28 couldnt check the key
-2024-09-25T13:46:28 '  File "quest.py", line 726, in <module>\n    poe_bot = PoeBot(unique_id=UNIQUE_ID, remote_ip = REMOTE_IP)\n'
-2024-09-25T13:46:28 '  File "C:\\poe_bot\\1_host\\utils\\gamehelper.py", line 101, in __init__\n    self.checkIfReady()\n'
-2024-09-25T13:46:28 '  File "C:\\poe_bot\\1_host\\utils\\gamehelper.py", line 142, in checkIfReady\n    raise Exception(\'couldnt check the key\')\n'

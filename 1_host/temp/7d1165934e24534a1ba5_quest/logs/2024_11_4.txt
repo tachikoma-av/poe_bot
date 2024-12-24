@@ -1,9 +1,0 @@
-2024-11-04T01:07:51 #resurrectAtCheckpoint call 1730653671.76503
-2024-11-04T01:15:09 exceptions must derive from BaseException
-2024-11-04T01:15:09 '  File "quest.py", line 4818, in <module>\n    current_quest_area.complete()\n'
-2024-11-04T01:15:09 '  File "quest.py", line 1225, in complete\n    raise "completed"\n'
-2024-11-04T01:17:42 #resurrectAtCheckpoint call 1730654262.616228
-2024-11-04T01:21:13 #resurrectAtCheckpoint call 1730654473.306103
-2024-11-04T01:22:00 #resurrectAtCheckpoint call 1730654520.998456
-2024-11-04T01:26:56 #resurrectAtCheckpoint call 1730654816.4213278
-2024-11-04T01:57:24 #resurrectAtCheckpoint call 1730656644.0022526
