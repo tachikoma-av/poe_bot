@@ -167,6 +167,7 @@ public class Entity_c{
     public int h { get; set; } // is hostile
     public int ia { get; set; } // is_attackable
     public int t { get; set; } // is targetable
+    public int it { get; set; } // is_targeted
     public int em { get; set; } // essenced_mob
     public int b { get; set; } // BoundsCenterPos
     public List<int> gp { get; set; } // grid position x, y
@@ -205,6 +206,7 @@ public class GetDataObject
     public int br { get; set; } // broken response
     public int g_s; // game state 0 - broken, 1 - main menu, 10 - select char, 20 - in game
     public List<int> w { get; set; } // window borders x1 x2 y1 y2
+    public List<int> mcp { get; set; } // mouse cursor pos [x,y]
     public string terrain_string;
     public uint ah; // area hash
     public List<Entity_c> awake_entities { get; set; }

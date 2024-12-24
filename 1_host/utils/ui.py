@@ -300,6 +300,12 @@ class Ui:
       item.click(can_click_multiple_times=1, mouse_speed_mult = int(mouse_speed_mult*1.5))
       time.sleep(random.randint(20,80)/100)
     if hold_ctrl is True:bot_controls.keyboard_releaseKey('DIK_LCONTROL')
+class Ui2(Ui):
+  map_device:MapDevice_Poe2
+  def __init__(self, poe_bot):
+    super().__init__(poe_bot)
+    self.map_device = MapDevice_Poe2(poe_bot)
+    self.resurrect_panel = ResurrectPanel2(poe_bot)
 class IncursionUiRoom:
   name:str
   index:int
@@ -880,6 +886,17 @@ class ResurrectPanel:
     poe_bot.bot_controls.mouse.click()
     time.sleep(random.randint(30,60)/100)
     return True
+class ResurrectPanel2(ResurrectPanel):
+  def clickResurrect(self, town = False):
+    poe_bot = self.poe_bot
+    pos_x, pos_y = random.randint(430,580), random.randint(560,570)
+    pos_x, pos_y = poe_bot.convertPosXY(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
+    time.sleep(random.randint(20,80)/100)
+    poe_bot.bot_controls.mouse.click()
+    time.sleep(random.randint(30,60)/100)
+    return True
 class TradeWindow:
   poe_bot:PoeBot
   def __init__(self, poe_bot:PoeBot) -> None:
@@ -1209,8 +1226,10 @@ class MapDevice:
       return False
 class MapDeviceMap(UiElement):
   def __init__(self, poe_bot, raw):
+    self.raw = raw
     self.screen_zone = Posx1x2y1y2(*raw['sz'])
     self.screen_pos = PosXY(int( (self.screen_zone.x1 + self.screen_zone.x2) / 2), int( (self.screen_zone.y1 + self.screen_zone.y2) / 2))
+    self.id:int = raw['id']
     self.name:str = raw['name']
     self.name_raw:str = raw['name_raw']
     self.icons:List[str] = raw['icons']
@@ -1225,7 +1244,7 @@ class MapDeviceMap(UiElement):
     self.is_unique = False
     self.is_hideout = False
     self.is_trader = False
-
+    self.is_tower = self.name_raw == "MapLostTowers"
     for icon in self.icons:
       if "AtlasIconContentMapBoss" in icon: self.is_boss = True 
       if "AtlasIconContentBreach" in icon: self.is_breach = True 
@@ -1238,10 +1257,17 @@ class MapDeviceMap(UiElement):
       if "AtlasIconContentHideout" in icon: self.is_hideout = True 
       if "AtlasIconContentTrader" in icon: self.is_trader = True 
     super().__init__(poe_bot, self.screen_zone, self.screen_pos)
+  def dragTo(self):
+    poe_bot = self.poe_bot
+    drag_from = poe_bot.game_window.convertPosXY(self.screen_pos[0], self.screen_pos[1])
+    drag_to = poe_bot.game_window.center_point
+    poe_bot.bot_controls.mouse.drag(drag_from, drag_to)
+    time.sleep(random.uniform(0.15, 0.35))
 class MapDevice_Poe2(MapDevice):
   def __init__(self, poe_bot:Poe2Bot):
     self.poe_bot = poe_bot
   def reset(self):
+    self.world_map_is_opened = False
     self.is_opened = False
     self.avaliable_maps = []
     self.place_map_window_opened = False
@@ -1254,7 +1280,8 @@ class MapDevice_Poe2(MapDevice):
       updated_data = self.poe_bot.backend.mapDeviceInfo()
     self.raw = updated_data
     self.reset()
-    self.is_opened:bool = updated_data['wm_o']
+    self.world_map_is_opened:bool = updated_data['wm_o']
+    self.is_opened:bool = updated_data['ap_o'] and self.world_map_is_opened
     if self.is_opened == False:
       return
     self.avaliable_maps = list(map(lambda m_raw: MapDeviceMap(self.poe_bot, m_raw), updated_data["av_m"]))
@@ -1262,10 +1289,66 @@ class MapDevice_Poe2(MapDevice):
     if self.place_map_window_opened:
       self.place_map_window_screenzone = Posx1x2y1y2(*updated_data["pmw_sz"])
       self.place_map_window_activate_button_screen_zone = Posx1x2y1y2(*updated_data["pmw_ab_sz"])
+      self.activate_button_pos = self.place_map_window_activate_button_screen_zone
       self.place_map_window_items = list(map(lambda i_raw: MapDeviceItem(self.poe_bot, i_raw), updated_data["pmw_i"]))
   
-  def moveScreenTo(self, map_device_map_element: MapDeviceMap):
-    pass
+  def checkIfActivateButtonIsActive(self):
+    poe_bot = self.poe_bot
+    self.update()
+    x1 = self.activate_button_pos.x1 +5
+    x2 = self.activate_button_pos.x2 -5
+    y1 = self.activate_button_pos.y1 +5
+    y2 = self.activate_button_pos.y2 -5
+    game_img = poe_bot.getImage()
+    activate_button_img = game_img[y1:y2, x1:x2]
+    # print('activate_button_img')
+    # plt.imshow(activate_button_img);plt.show()
+    # plt.imshow(third_skill);plt.show()
+    sorted_img = sortByHSV(activate_button_img, 0, 0, 0, 255, 30, 180)
+    # plt.imshow(sorted_img);plt.show()
+    activate_button_is_active = not len(sorted_img[sorted_img != 0]) > 30
+    # print(sorted_img[sorted_img != 0])
+    print(f"activate_button_is_active {activate_button_is_active}")
+    return activate_button_is_active
+
+  def moveScreenTo(self, map_obj: MapDeviceMap):
+    poe_bot = self.poe_bot
+    # map_obj = random.choice(poe_bot.ui.map_device.avaliable_maps)
+    print(f'going to drag to {map_obj.id}')
+    orig_id = map_obj.id
+    while True:
+      poe_bot.ui.map_device.update()
+      if poe_bot.ui.map_device.is_opened == False:
+        raise poe_bot.raiseLongSleepException('map device closed during dragging to map object')
+      map_obj = next( (m for m in poe_bot.ui.map_device.avaliable_maps if m.id == orig_id))
+      print(map_obj.raw)
+      poe_bot.ui.inventory.update()
+      x_center = poe_bot.game_window.center_point[0]
+      borders = poe_bot.game_window.borders[:]
+      borders[2] = 80
+      if poe_bot.ui.inventory.is_opened:
+        borders[1] = 545
+        x_center = int(x_center)/2
+      roi_borders = [
+        int((borders[0] + borders[1])/2 - 100),
+        int((borders[0] + borders[1])/2 + 100),
+        int((borders[2] + borders[3])/2 - 200),
+        int((borders[2] + borders[3])/2 + 100),
+      ]
+      print(f"roi borders {roi_borders}")
+      print(f"borders {borders}")
+      if poe_bot.game_window.isInRoi(map_obj.screen_pos.x, map_obj.screen_pos.y, custom_borders=roi_borders):
+        break
+      print(f"map_obj.screen_pos {map_obj.screen_pos.toList()}")
+      drag_from = poe_bot.game_window.convertPosXY(map_obj.screen_pos.x, map_obj.screen_pos.y, custom_borders=borders)
+      # ignore the inventory panel if it's opened
+      if poe_bot.ui.inventory.is_opened == True:
+        print('inventory is opened, different borders and roi')
+      drag_to = poe_bot.game_window.convertPosXY(x_center, poe_bot.game_window.center_point[1], custom_borders=borders)
+      poe_bot.bot_controls.mouse.drag(drag_from, drag_to)
+      time.sleep(random.uniform(0.15, 0.35))
+    
+    return map_obj
 
 
 class Inventory:
@@ -1283,7 +1366,7 @@ class Inventory:
     if current_inventory_info is None:
       current_inventory_info = self.poe_bot.backend.getOpenedInventoryInfo()
     self.last_raw_data = current_inventory_info
-    self.is_opened = current_inventory_info["IsOpened"]
+    self.is_opened:bool = current_inventory_info["IsOpened"]
     self.items = list(map(lambda item_raw: InventoryItem(poe_bot=self.poe_bot, item_raw=item_raw), current_inventory_info["items"]))
     return current_inventory_info
   def stashItems(self, items:List[InventoryItem]):

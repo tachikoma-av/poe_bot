@@ -334,21 +334,10 @@ class Poe2Bot(PoeBot):
   def __init__(self, unique_id, remote_ip, max_actions_per_second=random.randint(8, 10), debug=False, password=None, group_id='solo', coordinator_ip="127.0.0.1"):
     super().__init__(unique_id, remote_ip, max_actions_per_second, debug, password, group_id, coordinator_ip)
     
-    from .ui import MapDevice_Poe2
-    # differences
-    self.ui.resurrect_panel.clickResurrect = self.clickResurrect_POE2
-    self.ui.map_device = MapDevice_Poe2(self)
+    from .ui import Ui2
+    self.ui = Ui2(self)
     
-  def clickResurrect_POE2(self, town = False):
-    poe_bot = self
-    pos_x, pos_y = random.randint(430,580), random.randint(560,570)
-    pos_x, pos_y = poe_bot.convertPosXY(pos_x, pos_y)
-    time.sleep(random.randint(20,80)/100)
-    poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
-    time.sleep(random.randint(20,80)/100)
-    poe_bot.bot_controls.mouse.click()
-    time.sleep(random.randint(30,60)/100)
-    return True
+
   
   def respawnAtCheckPoint(self):
     poe_bot = self
@@ -571,6 +560,7 @@ class Entity:
   is_opened:bool
   is_hostile:bool
   is_targetable:bool
+  is_targeted:bool
   is_attackable:bool
   bound_center_pos:int
   grid_position:PosXY
@@ -592,6 +582,7 @@ class Entity:
     self.is_hostile = bool(raw_json.get('h', None))
     self.is_attackable = bool(raw_json.get('ia', None))
     self.is_targetable = bool(raw_json.get('t', None))
+    self.is_targeted = bool(raw_json.get('it', None))
     self.essence_monster = bool(raw_json.get('em', None))
     self.bound_center_pos = raw_json.get('b', None)
     self.grid_position = PosXY(x = raw_json['gp'][0], y = raw_json['gp'][1])
@@ -999,12 +990,15 @@ class GameWindow:
     self.poe_bot = poe_bot
     self.debug = poe_bot.debug
   
-  def convertPosXY(self,x,y, safe = True):
+  def convertPosXY(self,x,y, safe = True, custom_borders:List[int] = None):
     '''
     converts gamve_window x,y to machines display x,y
     '''
     if safe != False:
-      borders = self.borders
+      if custom_borders:
+        borders = custom_borders
+      else:
+        borders = self.borders
       if y < borders[2] or y > borders[3] or x < borders[0] or x > borders[1]:
         if self.debug: print(f'y < borders[2] or y > borders[3] or x < borders[0] or x > borders[1] out of bounds {x,y}')
         x, y = cropLine(
@@ -1016,6 +1010,18 @@ class GameWindow:
     pos_x = int(x + self.pos_x)
     pos_y = int(y + self.pos_y)
     return (pos_x, pos_y)
+
+  def isInRoi(self, x, y, custom_borders:List[int] = None):
+    if custom_borders:
+      borders = custom_borders
+    else:
+      borders = self.borders
+    if x > borders[0]:
+      if x < borders[1]:
+        if y > borders[2]:
+          if y < borders[3]:
+            return True
+    return False
 
   def update(self, refreshed_data):
     self.raw = refreshed_data['w']

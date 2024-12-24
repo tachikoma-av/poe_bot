@@ -5,6 +5,7 @@ from typing import List
 if typing.TYPE_CHECKING:
   from .gamehelper import PoeBot
 
+from utils.utils import pointOnCircleByAngleAndLength, createLineIteratorWithValues, angleOfLine
 
 import pyastar2d
 import numpy as np
@@ -96,6 +97,72 @@ class Pather:
 
     print('[Pather] cant find point in los')
     return cropped_path
+  
+  def findBackwardsPoint(self, current_point, point_to_go, branches_width = 3):
+    if branches_width > 3:
+      branches_width = 3
+    next_angle = angleOfLine(current_point, point_to_go)
+    distance = dist(current_point, point_to_go)
+    backwards_angle_raw = next_angle - 180
+    if backwards_angle_raw < 0:
+      backwards_angle_raw += 360
+    if backwards_angle_raw == 360:
+      backwards_angle_raw = 0
+    angle_mult = backwards_angle_raw // 45
+    angle_leftover = backwards_angle_raw % 45
+    if angle_leftover > 22.5:
+      angle_mult += 1
+
+    backwards_angle = int(angle_mult * 45)
+    if backwards_angle == 360:
+      backwards_angle = 0
+    backwards_angles = [backwards_angle]
+    backwards_values = [1]
+
+    branch_multipliers = []
+    for _i in range(1, branches_width + 1):
+      branch_multipliers.append(_i)
+      branch_multipliers.append(-_i)
+      move_val = 1 * 0.75 ** _i 
+      backwards_values.append(move_val)
+      backwards_values.append(move_val)
+
+    for _i in branch_multipliers:
+      branch = backwards_angle + 45 * _i
+      if branch < 0:
+        branch += 360
+      if branch > 360:
+        branch -= 360
+      if branch == 360:
+        branch = 0
+      backwards_angles.append(branch)
+
+    furthest_point = current_point
+    furthest_point_distance = 0
+    furthest_point_val = 0
+    for angle_index in range(len(backwards_angles)):
+      angle = backwards_angles[angle_index]
+      angle_mult = backwards_values[angle_index]
+      line_end = pointOnCircleByAngleAndLength(angle, distance, current_point)
+      line_points_vals = createLineIteratorWithValues(current_point, line_end, self.poe_bot.game_data.terrain.passable)
+      length = 0
+      last_point = line_points_vals[0]
+      for point in line_points_vals:
+        if point[2] != 1:
+          break
+        last_point = point 
+        length += 1
+      dist_to_last_point = dist(current_point, (last_point[0], last_point[1]))
+      last_point_val = dist_to_last_point * angle_mult
+      # if furthest_point_distance < dist_to_last_point:
+      
+      if furthest_point_val < last_point_val:
+        furthest_point_val = last_point_val
+        furthest_point_distance = dist_to_last_point
+        furthest_point = [int(last_point[0]), int(last_point[1])]
+      print(f"angle {angle}, {angle_mult}, {length}, {last_point}, {dist_to_last_point}, {last_point_val}")
+    return furthest_point
+
   def generatePath(self, start, end, randomize_points = False, random_val = 1):
     '''
     - start (y,x)

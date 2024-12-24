@@ -337,12 +337,18 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 var magic_properties = obj.GetComponent<ObjectMagicProperties>();
                 if (magic_properties != null){
                     if (magic_properties.Rarity == MonsterRarity.Rare){
-                        foreach (var mod_str in magic_properties.Mods){
-                            if (mod_str.Contains("EssenceDaemon") == true){
+                        var buffs_component = obj.GetComponent<Buffs>();
+                        if (buffs_component != null){
+                            if (buffs_component.HasBuff("hidden_monster_disable_minions")){
                                 entity.em = 1;
-                                break;
-                            }
+                            };
                         }
+                        // foreach (var mod_str in magic_properties.Mods){
+                        //     if (mod_str.Contains("EssenceDaemon") == true){
+                        //         entity.em = 1;
+                        //         break;
+                        //     }
+                        // }
                     }
                 }
             }
@@ -350,14 +356,13 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
             // is_opened
             entity.o = 0;
-            try {
-                entity.o = obj.IsOpened ? 1 : 0;
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"entity.IsOpened -> {e}");
-                
-            }
+            // try {
+            //     entity.o = obj.IsOpened ? 1 : 0;
+            // }
+            // catch (Exception e)
+            // {
+            //     DebugWindow.LogMsg($"entity.IsOpened -> {e}");
+            // }
             
             var triggerable_blockage = obj.GetComponent<TriggerableBlockage>();
             if (triggerable_blockage != null){
@@ -366,13 +371,20 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
 
             // is_targetable
-            try {
-                entity.t = obj.IsTargetable ? 1 : 0;
+            entity.t = 0;
+            entity.it = 0;
+            var targetable_comp = obj.GetComponent<Targetable>();
+            if (targetable_comp != null){
+                entity.t = targetable_comp.isTargetable ? 1 : 0;
+                entity.it = targetable_comp.isTargeted ? 1 : 0;
             }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"Targetable -> {e}");
-            }
+            // try {
+            //     entity.t = obj.IsTargetable ? 1 : 0;
+            // }
+            // catch (Exception e)
+            // {
+            //     DebugWindow.LogMsg($"Targetable -> {e}");
+            // }
 
 
             // // AnimatedPropertiesMetadata
@@ -622,71 +634,71 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     }
     public KirakMissionUI_c getKirakMissionsUi(){
         KirakMissionUI_c el = new KirakMissionUI_c();
-        var ui_element = GameController.IngameState.IngameUi.ZanaMissionChoice;
-        el.v = ui_element.IsVisible ? 1 : 0;
-        if (el.v == 0){
-            return el;
-        }
-        var el_rect = ui_element.GetClientRect(); // label_element_rect
-        el.sz = new List<int> {
-            (int)el_rect.X, 
-            (int)(el_rect.X + el_rect.Width), 
-            (int)el_rect.Y, 
-            (int)(el_rect.Y + el_rect.Height), 
-        };
-        el.kmv = new List<int>();
-        el.items = new List<InventoryObjectCustom_c>();
+        // var ui_element = GameController.IngameState.IngameUi.ZanaMissionChoice;
+        // el.v = ui_element.IsVisible ? 1 : 0;
+        // if (el.v == 0){
+        //     return el;
+        // }
+        // var el_rect = ui_element.GetClientRect(); // label_element_rect
+        // el.sz = new List<int> {
+        //     (int)el_rect.X, 
+        //     (int)(el_rect.X + el_rect.Width), 
+        //     (int)el_rect.Y, 
+        //     (int)(el_rect.Y + el_rect.Height), 
+        // };
+        // el.kmv = new List<int>();
+        // el.items = new List<InventoryObjectCustom_c>();
 
-        var items_in_missions = GameController.IngameState.Data.ServerData.NPCInventories[0];
-        var ui_elements_in_missions = ui_element.Children[0].Children[3].Children;
-        int prev_counter = 0;
-        int counter = 0;
-        int tab_index = 0;
-        // ju min
-        var maps_header = ui_element.Children[0].Children[0];
-        foreach( var tab in maps_header.Children){
-            var count = int.Parse(tab.Children[0].Text);
-            el.kmv.Add(count);
-            counter += count;
-            foreach (var normal_inventory_item in items_in_missions.Inventory.InventorySlotItems){
-                var item = normal_inventory_item.Item;
-                if (item == null){
-                    continue;
-                }
-                var item_index = normal_inventory_item.PosX; 
-                if (item_index >= counter || item_index < prev_counter){
-                    continue;
-                }
+        // var items_in_missions = GameController.IngameState.Data.ServerData.NPCInventories[0];
+        // var ui_elements_in_missions = ui_element.Children[0].Children[3].Children;
+        // int prev_counter = 0;
+        // int counter = 0;
+        // int tab_index = 0;
+        // // ju min
+        // var maps_header = ui_element.Children[0].Children[0];
+        // foreach( var tab in maps_header.Children){
+        //     var count = int.Parse(tab.Children[0].Text);
+        //     el.kmv.Add(count);
+        //     counter += count;
+        //     foreach (var normal_inventory_item in items_in_missions.Inventory.InventorySlotItems){
+        //         var item = normal_inventory_item.Item;
+        //         if (item == null){
+        //             continue;
+        //         }
+        //         var item_index = normal_inventory_item.PosX; 
+        //         if (item_index >= counter || item_index < prev_counter){
+        //             continue;
+        //         }
 
-                InventoryObjectCustom_c generated_inventory_object = convertItem(item);
-                var item_rect = ui_elements_in_missions[item_index].GetClientRect();
-                generated_inventory_object.s = new List<int> {
-                    (int)item_rect.X, 
-                    (int)(item_rect.X + item_rect.Width), 
-                    (int)item_rect.Y, 
-                    (int)(item_rect.Y + item_rect.Height), 
-                };
+        //         InventoryObjectCustom_c generated_inventory_object = convertItem(item);
+        //         var item_rect = ui_elements_in_missions[item_index].GetClientRect();
+        //         generated_inventory_object.s = new List<int> {
+        //             (int)item_rect.X, 
+        //             (int)(item_rect.X + item_rect.Width), 
+        //             (int)item_rect.Y, 
+        //             (int)(item_rect.Y + item_rect.Height), 
+        //         };
 
-                generated_inventory_object.g = new List<int> {
-                    normal_inventory_item.PosX,
-                    normal_inventory_item.PosY,
-                    normal_inventory_item.PosX + normal_inventory_item.SizeX,
-                    normal_inventory_item.PosY + normal_inventory_item.SizeY
-                };
+        //         generated_inventory_object.g = new List<int> {
+        //             normal_inventory_item.PosX,
+        //             normal_inventory_item.PosY,
+        //             normal_inventory_item.PosX + normal_inventory_item.SizeX,
+        //             normal_inventory_item.PosY + normal_inventory_item.SizeY
+        //         };
 
-                generated_inventory_object.ti = tab_index;
-                el.items.Add(generated_inventory_object);
-            }
-            tab_index += 1;
-            prev_counter += count;
+        //         generated_inventory_object.ti = tab_index;
+        //         el.items.Add(generated_inventory_object);
+        //     }
+        //     tab_index += 1;
+        //     prev_counter += count;
 
-        }
+        // }
 
-        // var items_in_missions = GameController.IngameState.Data.ServerData.NPCInventories[0][::];
-        // items_in_missions.InventorySlotItems.sort(el=>el.PosX);
-        // items_in_missions.map(el=>{
+        // // var items_in_missions = GameController.IngameState.Data.ServerData.NPCInventories[0][::];
+        // // items_in_missions.InventorySlotItems.sort(el=>el.PosX);
+        // // items_in_missions.map(el=>{
 
-        // });
+        // // });
 
 
         return el;
@@ -758,99 +770,99 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     }
     public BanditDialogueUi_c getBanditDialogueUi(){
         BanditDialogueUi_c el = new BanditDialogueUi_c();
-        el.v = GameController.IngameState.IngameUi.BanditDialog.IsVisible ? 1 : 0;
-        var el_rect = GameController.IngameState.IngameUi.BanditDialog.GetClientRect(); // label_element_rect
-        el.sz = new List<int> {
-            (int)el_rect.X, 
-            (int)(el_rect.X + el_rect.Width), 
-            (int)el_rect.Y, 
-            (int)(el_rect.Y + el_rect.Height), 
-        };
-        if (el.v == 1){
-            var help_button_rect = GameController.IngameState.IngameUi.BanditDialog.HelpButton.GetClientRect(); // label_element_rect
-            el.h_sz =new List<int> {
-                (int)help_button_rect.X, 
-                (int)(help_button_rect.X + help_button_rect.Width), 
-                (int)help_button_rect.Y, 
-                (int)(help_button_rect.Y + help_button_rect.Height), 
-            };
-            var kill_button_rect = GameController.IngameState.IngameUi.BanditDialog.KillButton.GetClientRect(); // label_element_rect
-            el.k_sz = new List<int> {
-                (int)kill_button_rect.X, 
-                (int)(kill_button_rect.X + kill_button_rect.Width), 
-                (int)kill_button_rect.Y, 
-                (int)(kill_button_rect.Y + kill_button_rect.Height), 
-            };
-        }
+        // el.v = GameController.IngameState.IngameUi.BanditDialog.IsVisible ? 1 : 0;
+        // var el_rect = GameController.IngameState.IngameUi.BanditDialog.GetClientRect(); // label_element_rect
+        // el.sz = new List<int> {
+        //     (int)el_rect.X, 
+        //     (int)(el_rect.X + el_rect.Width), 
+        //     (int)el_rect.Y, 
+        //     (int)(el_rect.Y + el_rect.Height), 
+        // };
+        // if (el.v == 1){
+        //     var help_button_rect = GameController.IngameState.IngameUi.BanditDialog.HelpButton.GetClientRect(); // label_element_rect
+        //     el.h_sz =new List<int> {
+        //         (int)help_button_rect.X, 
+        //         (int)(help_button_rect.X + help_button_rect.Width), 
+        //         (int)help_button_rect.Y, 
+        //         (int)(help_button_rect.Y + help_button_rect.Height), 
+        //     };
+        //     var kill_button_rect = GameController.IngameState.IngameUi.BanditDialog.KillButton.GetClientRect(); // label_element_rect
+        //     el.k_sz = new List<int> {
+        //         (int)kill_button_rect.X, 
+        //         (int)(kill_button_rect.X + kill_button_rect.Width), 
+        //         (int)kill_button_rect.Y, 
+        //         (int)(kill_button_rect.Y + kill_button_rect.Height), 
+        //     };
+        // }
         return el;
     }
     public NecropolisPopupUI_c getNecropolisPopupUI(){
         NecropolisPopupUI_c el = new NecropolisPopupUI_c();
-        var necropolis_popup_element = GameController.IngameState.IngameUi.NecropolisMonsterPanel;
-        el.v = necropolis_popup_element.IsVisible ? 1 : 0;
-        if (el.v == 1){
-            var enter_button_rect = necropolis_popup_element.Children[3].Children[2].Children[0].GetClientRect(); // label_element_rect
-            el.eb_sz =new List<int> {
-                (int)enter_button_rect.X, 
-                (int)(enter_button_rect.X + enter_button_rect.Width), 
-                (int)enter_button_rect.Y, 
-                (int)(enter_button_rect.Y + enter_button_rect.Height), 
-            };
+        // var necropolis_popup_element = GameController.IngameState.IngameUi.NecropolisMonsterPanel;
+        // el.v = necropolis_popup_element.IsVisible ? 1 : 0;
+        // if (el.v == 1){
+        //     var enter_button_rect = necropolis_popup_element.Children[3].Children[2].Children[0].GetClientRect(); // label_element_rect
+        //     el.eb_sz =new List<int> {
+        //         (int)enter_button_rect.X, 
+        //         (int)(enter_button_rect.X + enter_button_rect.Width), 
+        //         (int)enter_button_rect.Y, 
+        //         (int)(enter_button_rect.Y + enter_button_rect.Height), 
+        //     };
 
-        }
+        // }
         return el;
     }
     public IncursionUi_c getIncursionUi(){
         IncursionUi_c el = new IncursionUi_c();
-        var incursion_element = GameController.IngameState.IngameUi.IncursionWindow;
-        el.v = incursion_element.IsVisible ? 1 : 0;
-        if (el.v == 1){
-            el.eib_v = incursion_element.AcceptElement.IsVisible ? 1 : 0;
-            el.tib_v = incursion_element.Children[7].IsVisible ? 1 : 0;
+        // var incursion_element = GameController.IngameState.IngameUi.IncursionWindow;
+        // el.v = incursion_element.IsVisible ? 1 : 0;
+        // if (el.v == 1){
+        //     el.eib_v = incursion_element.AcceptElement.IsVisible ? 1 : 0;
+        //     el.tib_v = incursion_element.Children[7].IsVisible ? 1 : 0;
             
 
-            el.irt = incursion_element.Children[5].Text;
-            el.crn = incursion_element.Children[3].Children[13].Children[1].Text;
-            el.cruur = new List<string> {
-                incursion_element.Reward1,
-                incursion_element.Reward2
-            };
+        //     el.irt = incursion_element.Children[5].Text;
+        //     el.crn = incursion_element.Children[3].Children[13].Children[1].Text;
+        //     el.cruur = new List<string> {
+        //         incursion_element.Reward1,
+        //         incursion_element.Reward2
+        //     };
 
-            var enter_incursion_button_element_rect = incursion_element.AcceptElement.GetClientRect();
-            el.eib_sz = new List<int> {
-                (int)enter_incursion_button_element_rect.X, 
-                (int)(enter_incursion_button_element_rect.X + enter_incursion_button_element_rect.Width), 
-                (int)enter_incursion_button_element_rect.Y, 
-                (int)(enter_incursion_button_element_rect.Y + enter_incursion_button_element_rect.Height), 
-            };
+        //     var enter_incursion_button_element_rect = incursion_element.AcceptElement.GetClientRect();
+        //     el.eib_sz = new List<int> {
+        //         (int)enter_incursion_button_element_rect.X, 
+        //         (int)(enter_incursion_button_element_rect.X + enter_incursion_button_element_rect.Width), 
+        //         (int)enter_incursion_button_element_rect.Y, 
+        //         (int)(enter_incursion_button_element_rect.Y + enter_incursion_button_element_rect.Height), 
+        //     };
 
-            var current_room_connections = new List<string>();
-            var current_rooms_element = incursion_element.Children[3].Children[13].Children[0];
-            for (int i = 3; i < 9; i++){
-                var room_element = current_rooms_element.Children[i];
-                var room_element_text = room_element.Children[1].Tooltip.Text;
-                current_room_connections.Add(room_element_text);
-            }
-            el.crc = current_room_connections;
+        //     var current_room_connections = new List<string>();
+        //     var current_rooms_element = incursion_element.Children[3].Children[13].Children[0];
+        //     for (int i = 3; i < 9; i++){
+        //         var room_element = current_rooms_element.Children[i];
+        //         var room_element_text = room_element.Children[1].Tooltip.Text;
+        //         current_room_connections.Add(room_element_text);
+        //     }
+        //     el.crc = current_room_connections;
 
 
-            var rooms = new List<IncursionUiRoom_c>();
-            var rooms_element = incursion_element.Children[3];
-            for (int i = 0; i < 13; i++){
-                IncursionUiRoom_c room = new IncursionUiRoom_c(); 
-                var room_element = rooms_element.Children[i];
-                room.n = room_element.Children[0].Children[0].Text;
-                var room_element_rect = room_element.GetClientRect();
-                room.sz =new List<int> {
-                    (int)room_element_rect.X, 
-                    (int)(room_element_rect.X + room_element_rect.Width), 
-                    (int)room_element_rect.Y, 
-                    (int)(room_element_rect.Y + room_element_rect.Height), 
-                };
-                rooms.Add(room);
-            }
-            el.r = rooms;
-        }
+        //     var rooms = new List<IncursionUiRoom_c>();
+        //     var rooms_element = incursion_element.Children[3];
+        //     for (int i = 0; i < 13; i++){
+        //         IncursionUiRoom_c room = new IncursionUiRoom_c(); 
+        //         var room_element = rooms_element.Children[i];
+        //         room.n = room_element.Children[0].Children[0].Text;
+        //         var room_element_rect = room_element.GetClientRect();
+        //         room.sz =new List<int> {
+        //             (int)room_element_rect.X, 
+        //             (int)(room_element_rect.X + room_element_rect.Width), 
+        //             (int)room_element_rect.Y, 
+        //             (int)(room_element_rect.Y + room_element_rect.Height), 
+        //         };
+        //         rooms.Add(room);
+        //     }
+        //     el.r = rooms;
+        // }
         return el;
     }
     public NpcDialogueUi_c getNpcDialogueUi(){
@@ -1086,11 +1098,11 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 if (render_item_component != null){
                     visible_label.a = render_item_component.ResourcePath;
                 }
-                // sockets
-                var sockets_component = item_entity.GetComponent<Sockets>();
-                if (sockets_component != null){
-                    visible_label.l = sockets_component.SocketGroup;
-                }
+                // // sockets
+                // var sockets_component = item_entity.GetComponent<Sockets>();
+                // if (sockets_component != null){
+                //     visible_label.l = sockets_component.SocketGroup;
+                // }
                 // mods
                 var mods_component = item_entity.GetComponent<Mods>();
                 if (mods_component != null){
@@ -1410,10 +1422,10 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             converted_item.a = render_item_component.ResourcePath;
         }
 
-        var sockets_component = orig_item.GetComponent<Sockets>();
-        if (sockets_component != null){
-            converted_item.l = sockets_component.SocketGroup;
-        }
+        // var sockets_component = orig_item.GetComponent<Sockets>();
+        // if (sockets_component != null){
+        //     converted_item.l = sockets_component.SocketGroup;
+        // }
 
         Mods mods_component = orig_item.GetComponent<Mods>();
         if (mods_component != null){
@@ -1562,15 +1574,15 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     }
     public List<GemToLevelInfo> getGemsToLevelInfo(){
         List<GemToLevelInfo> gems_to_level = new List<GemToLevelInfo>();
-        foreach (var gem in GameController.IngameState.IngameUi.GemLvlUpPanel.GemsToLvlUp){
-            GemToLevelInfo gem_instance = new GemToLevelInfo();
-            gem_instance.center_location = new LocationOnScreen_generated();
-            gem_instance.center_location.X = (int)gem.Center.X;
-            gem_instance.center_location.Y = (int)gem.Center.Y;
-            gem_instance.height = (int)gem.Height;
-            gem_instance.width = (int)gem.Width;
-            gems_to_level.Add(gem_instance);
-        } 
+        // foreach (var gem in GameController.IngameState.IngameUi.GemLvlUpPanel.GemsToLvlUp){
+        //     GemToLevelInfo gem_instance = new GemToLevelInfo();
+        //     gem_instance.center_location = new LocationOnScreen_generated();
+        //     gem_instance.center_location.X = (int)gem.Center.X;
+        //     gem_instance.center_location.Y = (int)gem.Center.Y;
+        //     gem_instance.height = (int)gem.Height;
+        //     gem_instance.width = (int)gem.Width;
+        //     gems_to_level.Add(gem_instance);
+        // } 
         return gems_to_level;
     }
 
@@ -1603,6 +1615,10 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 (int)window.TopRight.X, 
                 (int)window.TopRight.Y, 
                 (int)window.BottomLeft.Y, 
+            };
+            response.mcp = new List<int> {
+                (int)GameController.IngameState.MousePosX, 
+                (int)GameController.IngameState.MousePosY, 
             };
 
             // area related

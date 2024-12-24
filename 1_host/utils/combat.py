@@ -547,6 +547,27 @@ class Skill():
     self.update()
     print(f'[Skill {self.display_name}] successfully used  at {time.time()}')
     return True
+  def moveThenUse(self, grid_pos_x = 0, grid_pos_y = 0, updated_entity:Entity = None, wait_for_execution = True, force = False, use_first = False):
+      
+    
+    use_func = lambda: self.use(grid_pos_x, grid_pos_y, updated_entity, False, force)
+    move_func = lambda: self.poe_bot.mover.move()
+
+
+    '''
+    - #TODO check if it's possible to execute use func, like skill is executable and whatever
+    - #TODO adjust the time, if wait_for_execution == True so itll:
+      either cast skill, move, wait till skill cast time
+      or move, release mouse(if mover.move_type == mouse), cast, wait till skill cast time 
+    '''
+
+    queue = []
+    queue.append(use_func)
+    if use_first == True:
+      queue.insert(-1, move_func)
+    else:
+      queue.insert(0, move_func)
+    return True
   def getCastTime(self):
     return self.poe_bot.game_data.skills.cast_time[self.skill_index]
   def convertToPos(self,pos_x,pos_y,entity:Entity = None):
@@ -4608,7 +4629,7 @@ class DodgeRoll(SkillWithDelay):
     self.press_func = poe_bot.bot_controls.keyboard_pressKey
     self.release_func = poe_bot.bot_controls.keyboard_releaseKey
     self.checkIfCanUse = lambda *args, **kwargs: True
-    self.getCastTime = lambda *args, **kwargs: 0.7
+    self.getCastTime = lambda *args, **kwargs: 0.5
 
 class InfernalistZoomancer(Build):
   '''
@@ -4625,24 +4646,27 @@ class InfernalistZoomancer(Build):
 
     self.minion_reaver_enrage = None
 
+    self.minion_arconist_dd = None
+    self.minion_reaver_enrage = None
+    self.minion_sniper_gas_arrow = None
 
-    minion_command_internal_name = "minion_command"
+    minion_command_internal_name = "command_minion"
     for skill_index in range(len(self.poe_bot.game_data.skills.internal_names)):
       skill_name_raw = self.poe_bot.game_data.skills.internal_names[skill_index]
       if skill_name_raw != minion_command_internal_name:
         continue
-      skill_base_cast_time = next( (sd for sd in poe_bot.game_data.skills.descriptions[skill_index] if 'BaseSpellCastTimeMs' in sd.keys()), None)
+      skill_base_cast_time = next( (list(sd.values())[0] for sd in poe_bot.game_data.skills.descriptions[skill_index] if 'BaseSpellCastTimeMs' in sd.keys()), None)
       if skill_base_cast_time == None:
         continue
-      elif skill_base_cast_time == 600:
+      elif self.minion_arconist_dd == None and skill_base_cast_time == 600:
         print(f'[InfernalistZoomancer.__init__] found minion_arconist_dd_index {skill_index}')
         self.minion_arconist_dd = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_arconist_dd", can_use_earlier=False)
-      elif skill_base_cast_time == 1000:
+      elif self.minion_reaver_enrage == None and skill_base_cast_time == 1000:
         print(f'[InfernalistZoomancer.__init__] found minion_reaver_enrage_index {skill_index}')
-        self.minion_reaver_enrage = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_reaver_enrage", can_use_earlier=False)
-      elif skill_base_cast_time == 1250:
+        self.minion_reaver_enrage = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.uniform(2.5, 3.0), display_name="minion_reaver_enrage", can_use_earlier=False)
+      elif self.minion_sniper_gas_arrow == None and skill_base_cast_time == 1250:
         print(f'[InfernalistZoomancer.__init__] found minion_sniper_gas_arrow_index {skill_index}')
-        self.minion_sniper_gas_arrow = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.randint(20,30)/10, display_name="minion_sniper_gas_arrow", can_use_earlier=False)
+        self.minion_sniper_gas_arrow = SkillWithDelay(poe_bot=poe_bot, skill_index=skill_index, min_delay=random.uniform(0.05, 0.15), display_name="minion_sniper_gas_arrow", can_use_earlier=False)
 
 
     #TODO minion frenzy command
@@ -4650,7 +4674,7 @@ class InfernalistZoomancer(Build):
 
     dd_internal_name = "detonate_dead"
     detonate_dead_index = dd_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(dd_internal_name) 
-    offering_internal_name = "paint_offering"
+    offering_internal_name = "pain_offering"
     offerening_index = offering_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(offering_internal_name) 
     flammability_internal_name = "fire_weakness"
     flammability_index = flammability_internal_name in self.poe_bot.game_data.skills.internal_names and self.poe_bot.game_data.skills.internal_names.index(flammability_internal_name) 
@@ -4658,20 +4682,25 @@ class InfernalistZoomancer(Build):
 
     self.fire_skills = []
 
+    self.flame_wall = None
     if flame_wall_index != False:
       self.flame_wall = SkillWithDelay(poe_bot=poe_bot, skill_index=flame_wall_index, min_delay=random.randint(20,30)/10, display_name="flame_wall", can_use_earlier=False)
       self.fire_skills.append(self.flame_wall)
 
+    self.unearth = None
     if unearth_index != False:
       self.unearth = SkillWithDelay(poe_bot=poe_bot, skill_index=unearth_index, min_delay=random.randint(20,30)/10, display_name="unearth", can_use_earlier=False)
 
+    self.detonate_dead = None
     if detonate_dead_index != False:
       self.detonate_dead = SkillWithDelay(poe_bot=poe_bot, skill_index=detonate_dead_index, min_delay=random.uniform(3.1, 4.5), display_name="detonate_dead", can_use_earlier=False)
       self.fire_skills.append(self.detonate_dead)
     
+    self.offering = None
     if offerening_index != False:
       self.offering = SkillWithDelay(poe_bot=poe_bot, skill_index=offerening_index, min_delay=random.randint(20,30)/10, display_name="offering", can_use_earlier=False)
 
+    self.flammability = None
     if flammability_index != False:
       self.flammability = SkillWithDelay(poe_bot=poe_bot, skill_index=flammability_index, min_delay=random.randint(20,30)/10, display_name="flammability", can_use_earlier=False)
 
@@ -4688,10 +4717,11 @@ class InfernalistZoomancer(Build):
 
     # if we are moving
     if mover is not None:
-      self.useBuffs()
+      skill_used = False
+      skill_used = self.useBuffs()
       attacking_skill_delay = 2
 
-      nearby_enemies = list(filter(lambda e: e.isInRoi(), poe_bot.game_data.entities.attackable_entities))
+      nearby_enemies = list(filter(lambda e: e.distance_to_player < 50 and e.isInRoi(), poe_bot.game_data.entities.attackable_entities))
       print(f'nearby_enemies: {nearby_enemies}')
       really_close_enemies = list(filter(lambda e: e.distance_to_player < 20,nearby_enemies))
       min_delay = 3
@@ -4708,32 +4738,71 @@ class InfernalistZoomancer(Build):
         if len(nearby_enemies) != 0:
           enemy_to_attack = nearby_enemies[0]
       
+      attack_skill_used = False
       if enemy_to_attack is not None:
-        if self.flame_wall and self.flame_wall.last_use_time + attacking_skill_delay < time.time():
-          alive_srs_nearby = list(filter(lambda e: not e.is_hostile and e.life.health.current != 0 and e.distance_to_player < 150 and "Metadata/Monsters/RagingSpirit/RagingSpiritPlayerSummoned" in e.path , self.poe_bot.game_data.entities.all_entities))
-          if len(alive_srs_nearby) < self.max_srs_count:
-            print(f'[Generic summoner] need to raise srs')
-            if self.flame_wall.use(updated_entity=enemy_to_attack) == True:
-              return True
-        if self.detonate_dead and self.detonate_dead.canUse():
-          corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 40)
-          corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
-          if len(corpses_around) != 0:
-            corpses_around.sort(key=lambda e: e.calculateValueForAttack())
-            if corpses_around[0].attack_value != 0:
-              if self.detonate_dead.use(updated_entity=corpses_around[0]) != False:
-                return True
-        if self.unearth and self.unearth.canUse():
-          corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 20)
-          corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
-          if len(corpses_around) != 0:
-            corpses_around.sort(key=lambda e: e.calculateValueForAttack())
-            if corpses_around[0].attack_value != 0:
-              if self.unearth.use(updated_entity=corpses_around[0]) != False:
-                return True
-            
+
+        for _i in range(1):
+          if self.flame_wall and self.flame_wall.last_use_time + attacking_skill_delay < time.time():
+            alive_srs_nearby = list(filter(lambda e: not e.is_hostile and e.life.health.current != 0 and e.distance_to_player < 150 and "Metadata/Monsters/RagingSpirit/RagingSpiritPlayerSummoned" in e.path , self.poe_bot.game_data.entities.all_entities))
+            if len(alive_srs_nearby) < self.max_srs_count:
+              print(f'[Generic summoner] need to raise srs, current count {len(alive_srs_nearby)}')
+              if self.flame_wall.use(updated_entity=enemy_to_attack, wait_for_execution=False) == True:
+                attack_skill_used = True
+                break
+          if self.detonate_dead and self.detonate_dead.canUse():
+            corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 40)
+            corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+            if len(corpses_around) != 0:
+              corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+              if corpses_around[0].attack_value != 0:
+                if self.detonate_dead.use(updated_entity=corpses_around[0], wait_for_execution=False) != False:
+                  attack_skill_used = True
+                  break
+                
+          if self.minion_sniper_gas_arrow and self.minion_sniper_gas_arrow.canUse():
+            if self.minion_sniper_gas_arrow.use(updated_entity=enemy_to_attack, wait_for_execution=False) == True:
+              attack_skill_used = True
+              break
+          if self.minion_reaver_enrage and self.minion_reaver_enrage.canUse():
+            if self.minion_reaver_enrage.use(wait_for_execution=False) == True:
+              attack_skill_used = True
+              break
+          if self.unearth and self.unearth.canUse():
+            corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 20)
+            corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
+            if len(corpses_around) != 0:
+              corpses_around.sort(key=lambda e: e.calculateValueForAttack())
+              if corpses_around[0].attack_value != 0:
+                if self.unearth.use(updated_entity=corpses_around[0], wait_for_execution=False) != False:
+                  attack_skill_used = True
+                  break
+
+
+        p0 = (mover.grid_pos_to_step_x, mover.grid_pos_to_step_y)
+        p1 = (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y)
+        # cast first then move back
+        if len(nearby_enemies) > 1:
+          go_back_point = self.poe_bot.pather.findBackwardsPoint(p1, p0)
+          poe_bot.mover.move(*go_back_point)
+          return True
+        if attack_skill_used:
+          return True
+
+        #TODO add global cooldown, so itll be able to finish casting skills
+        extremley_close_entities = list(filter(lambda e: e.distance_to_player < 10, really_close_enemies))
+        enemies_on_way = list(filter(lambda e: e.distance_to_player < 15 and getAngle(p0, p1, (e.grid_position.x, e.grid_position.y), abs_180=True) < 45, really_close_enemies))
+        if extremley_close_entities or enemies_on_way:
+          if self.dodge_roll.use() == True:
+            return True
+
+        # return True
+        
+      
+
+
       p0 = (mover.grid_pos_to_step_x, mover.grid_pos_to_step_y)
       p1 = (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y)
+      # go_back_point = self.poe_bot.pather.findBackwardsPoint(p1, p0)
       
       extremley_close_entities = list(filter(lambda e: e.distance_to_player < 10, really_close_enemies))
       enemies_on_way = list(filter(lambda e: e.distance_to_player < 15 and getAngle(p0, p1, (e.grid_position.x, e.grid_position.y), abs_180=True) < 45, really_close_enemies))
@@ -4838,28 +4907,44 @@ class InfernalistZoomancer(Build):
         alive_srs_nearby = list(filter(lambda e: not e.is_hostile and e.life.health.current != 0 and e.distance_to_player < 150 and "Metadata/Monsters/RagingSpirit/RagingSpiritPlayerSummoned" in e.path , self.poe_bot.game_data.entities.all_entities))
         if len(alive_srs_nearby) < self.max_srs_count:
           print(f'[Generic summoner] need to raise srs')
-          if self.flame_wall.use(updated_entity=entity_to_kill) == True:
+          if self.flame_wall.use(updated_entity=entity_to_kill, wait_for_execution=False) == True:
             skill_used = True
       if skill_used is False and self.detonate_dead and self.detonate_dead.canUse():
-        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 40)
+        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(entity_to_kill.grid_position.x, entity_to_kill.grid_position.y, 40)
         corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
         if len(corpses_around) != 0:
           corpses_around.sort(key=lambda e: e.calculateValueForAttack())
           if corpses_around[0].attack_value != 0:
-            if self.detonate_dead.use(updated_entity=corpses_around[0]) != False:
+            if self.detonate_dead.use(updated_entity=corpses_around[0], wait_for_execution=False) != False:
               skill_used = True
       if skill_used is False and self.unearth and self.unearth.canUse():
-        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y, 20)
+        corpses_around = poe_bot.game_data.entities.getCorpsesArountPoint(entity_to_kill.grid_position.x, entity_to_kill.grid_position.y, 20)
         corpses_around = list(filter(lambda e: e.isInLineOfSight() != False, corpses_around))
         if len(corpses_around) != 0:
           corpses_around.sort(key=lambda e: e.calculateValueForAttack())
           if corpses_around[0].attack_value != 0:
-            if self.unearth.use(updated_entity=corpses_around[0]) != False:
+            if self.unearth.use(updated_entity=corpses_around[0], wait_for_execution=False) != False:
               skill_used = True
+      if skill_used is False and self.minion_reaver_enrage and self.minion_reaver_enrage.canUse():
+        if self.minion_reaver_enrage.use(updated_entity=entity_to_kill, wait_for_execution=False) != False:
+          skill_used = True
+
+      if skill_used is False and self.minion_sniper_gas_arrow and self.minion_sniper_gas_arrow.canUse():
+        if self.minion_sniper_gas_arrow.use(updated_entity=entity_to_kill, wait_for_execution=False) != False:
+          skill_used = True
+        
+      
 
 
-      if skill_used != True:
-        print('kiting')
+      print('kiting')
+      if distance_to_entity > keep_distance:
+        print('away')
+        p0 = (entity_to_kill.grid_position.x, entity_to_kill.grid_position.y)
+        p1 = (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y)
+        go_back_point = self.poe_bot.pather.findBackwardsPoint(p1, p0)
+        poe_bot.mover.move(*go_back_point)
+      else:
+        print('around')
         point = self.poe_bot.game_data.terrain.pointToRunAround(entity_to_kill.grid_position.x, entity_to_kill.grid_position.y, kite_distance+random.randint(-1,1), check_if_passable=True, reversed=reversed_run)
         mover.move(grid_pos_x = point[0], grid_pos_y = point[1])
 

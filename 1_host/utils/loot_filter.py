@@ -211,6 +211,7 @@ class LootPicker:
     last_coords_to_click = (0,0)
     click_count = 0
     for i in range(4):
+      print(f'#pickupDropV{pickup_drop_version} label_to_click {label_to_click} at {time.time()}')
       coords_to_click = ( int( (label_to_click["p_o_s"]["y1"] + label_to_click["p_o_s"]["y2"])/2 ), int( (label_to_click["p_o_s"]["x1"] + label_to_click["p_o_s"]["x2"])/2 ) )
       if coords_to_click == last_coords_to_click:
         print(f'coords to click didnt change, seems like we clicked it')
