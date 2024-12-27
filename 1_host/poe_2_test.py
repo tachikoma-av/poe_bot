@@ -12,7 +12,7 @@ from poe2_strategies.open_new_map_if_required import OpenNewMapIfRequiredStrateg
 from poe2_strategies.return_from_map_to_hideout import ReturnFromMapToHideoutStrategy
 from utils.gamehelper import Poe2Bot
 from config import Config
-from pick_strategy import PickStrategy
+from pick_strategy import PickStrategy, PickAllStrategy
 from map_selection_strategy import SelectMapToRunStrategy
 from poe2_strategies import (
     EnterPortalStrategy,
@@ -40,59 +40,13 @@ poe_bot = Poe2Bot(
 )
 poe_bot.refreshAll()
 
-
-
-# In[7]:
-
-
-from utils.loot_filter import PickableItemLabel
-
-ARTS_TO_PICK = [
-  "Art/2DItems/Currency/CurrencyModValues.dds", # divine
-  "Art/2DItems/Currency/CurrencyGemQuality.dds", # gemcutter
-  "Art/2DItems/Currency/CurrencyRerollRare.dds", # chaos
-  "Art/2DItems/Currency/CurrencyAddModToRare.dds", # exalt
-  "Art/2DItems/Currency/CurrencyUpgradeToUnique.dds", # chance
-]
-
-# big piles of gold
-for tier in range(2,17):
-  ARTS_TO_PICK.append(f"Art/2DItems/Currency/Ruthless/CoinPileTier{tier}.dds")
-# waystones
-for tier in range(1,17):
-  ARTS_TO_PICK.append(f"Art/2DItems/Maps/EndgameMaps/EndgameMap{tier}.dds")
-
-# "Art/2DItems/Currency/Essence/GreaterFireEssence.dds"
-
-def isItemHasPickableKey(item_label:PickableItemLabel):
-  if item_label.icon_render in ARTS_TO_PICK:
-    return True
-  return False
-poe_bot.loot_picker.loot_filter.special_rules = [isItemHasPickableKey]
-
-
-# In[8]:
-
-
-# poe_bot.mover.setMoveType('wasd')
-
-
-# In[9]:
-
-
-from utils.combat import PathfinderPoisonConc2
-
+#
+# SETUP COMBAT BUILD
+#
+poe_bot.combat_module.build = DonColdMonkBuild(poe_bot=poe_bot)
+#from utils.combat import PathfinderPoisonConc2
 # poe_bot.combat_module.build = InfernalistZoomancer(poe_bot=poe_bot)
-poe_bot.combat_module.build = PathfinderPoisonConc2(poe_bot=poe_bot)
-
-def activateSwitchesNearby():
-  switch_nearby = next( (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable and e.path == "Metadata/Terrain/Maps/Crypt/Objects/CryptSecretDoorSwitch" and e.distance_to_player < 30), None)
-  if switch_nearby:
-    poe_bot.mover.goToEntitysPoint(switch_nearby)
-    poe_bot.combat_module.clearAreaAroundPoint(switch_nearby.grid_position.toList())
-    switch_nearby.clickTillNotTargetable()
-    return True
-  return False
+#poe_bot.combat_module.build = PathfinderPoisonConc2(poe_bot=poe_bot)
 
 def custom_default_continue_function(*args, **kwargs):
   pass
@@ -106,7 +60,12 @@ poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRouti
 
 
 # Initialize pick strategy
-pick_strategy = PickStrategy()
+# 
+
+#pick_strategy = PickStrategy() # pick only specific items
+pick_strategy = PickAllStrategy() # pick all items
+
+
 poe_bot.loot_picker.loot_filter.special_rules = [pick_strategy.should_pick_item]
 if config.alch_map_if_possible:
   pick_strategy.add_art("Art/2DItems/Currency/CurrencyUpgradeToRare.dds")
@@ -150,6 +109,13 @@ while True:
       hideout_preparations(poe_bot)
   else:
       print("DEBUG: not in hideout, skipping hideout preparations")
+
+  # Next step is to complete map itself
+  map_traverser(poe_bot)
+
+  # And return back to hideout
+  ReturnFromMapToHideoutStrategy()(poe_bot)
+
 
 
 

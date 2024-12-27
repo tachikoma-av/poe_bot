@@ -1,5 +1,6 @@
 
 from config import Config
+from utils.constants import ESSENCES_KEYWORD
 from utils.encounters import EssenceEncounter
 from utils.gamehelper import Poe2Bot
 
@@ -10,6 +11,13 @@ class RunnerBreaker:
         self.poe_bot = poe_bot
         self.config = config
       
+    def seekForEssences(self, search_loc = None):
+        '''
+        search_loc: [gridx,gridy]
+        '''
+        essences = list(filter(lambda e: e.is_targetable is True and ESSENCES_KEYWORD in e.path and self.poe_bot.game_data.terrain.checkIfPointPassable(e.grid_position.x, e.grid_position.y), self.poe_bot.game_data.entities.all_entities))
+        return essences
+
     def activateSwitchesNearby(self):
         switch_nearby = next( (e for e in self.poe_bot.game_data.entities.all_entities if e.is_targetable and e.path == "Metadata/Terrain/Maps/Crypt/Objects/CryptSecretDoorSwitch" and e.distance_to_player < 30), None)
         if switch_nearby:

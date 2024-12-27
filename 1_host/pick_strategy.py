@@ -1,6 +1,8 @@
 from utils.loot_filter import PickableItemLabel
 from typing import List, Callable
 
+
+
 class PickStrategy:
     _instance = None
     
@@ -46,3 +48,7 @@ class PickStrategy:
         """Remove an art path from pick list"""
         if art_path in self._arts_to_pick:
             self._arts_to_pick.remove(art_path) 
+            
+class PickAllStrategy(PickStrategy):
+    def should_pick_item(self, item_label: PickableItemLabel) -> bool:
+        return True                
