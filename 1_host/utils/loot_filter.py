@@ -98,7 +98,7 @@ class LootPicker:
     drop_availiable = self.pickupDropV6(pickable_items_sorted)
     poe_bot.refreshInstanceData(reset_timer=True)
     poe_bot.last_action_time = 0
-    poe_bot.combat_module.build.usualRoutine()
+    poe_bot.combat_module.build.staticDefence()
     print(f'[LootPicker.collectLoot] return at {time.time()}')
     return True
   def collectLootWhilePresented(self):

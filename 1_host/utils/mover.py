@@ -531,7 +531,7 @@ class Mover:
 
     if entity_to_go.distance_to_player < min_distance:
       print(f"#goToEntity {entity_to_go.distance_to_player} entity['distance_to_player'] < min_distance, useless call")
-      return True
+      return None
 
     self.entity_to_go = entity_to_go
     entity_to_go_id = entity_to_go.id
@@ -599,7 +599,7 @@ class Mover:
 
     if entity_to_go.distance_to_player < min_distance:
       print(f"#goToEntity {entity_to_go.distance_to_player} entity['distance_to_player'] < min_distance, useless call")
-      return True
+      return None
 
     while True:
       res = self.goToPoint(

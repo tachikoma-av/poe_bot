@@ -482,7 +482,6 @@ def extendLine(start, end, multiplier):
     -start: [x,y]
     -end: [x,y]
     -multiplier: int
-
   returns:
     - point [x,y] of the extended line  
   '''

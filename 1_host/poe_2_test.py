@@ -106,6 +106,8 @@ for tier in range(2,17):
 for tier in range(1,17):
   ARTS_TO_PICK.append(f"Art/2DItems/Maps/EndgameMaps/EndgameMap{tier}.dds")
 
+# "Art/2DItems/Currency/Essence/GreaterFireEssence.dds"
+
 def isItemHasPickableKey(item_label:PickableItemLabel):
   if item_label.icon_render in ARTS_TO_PICK:
     return True
@@ -122,7 +124,23 @@ poe_bot.loot_picker.loot_filter.special_rules = [isItemHasPickableKey]
 # In[9]:
 
 
-poe_bot.combat_module.build = InfernalistZoomancer(poe_bot=poe_bot)
+from utils.combat import PathfinderPoisonConc2
+
+# poe_bot.combat_module.build = InfernalistZoomancer(poe_bot=poe_bot)
+poe_bot.combat_module.build = PathfinderPoisonConc2(poe_bot=poe_bot)
+
+def activateSwitchesNearby():
+  switch_nearby = next( (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable and e.path == "Metadata/Terrain/Maps/Crypt/Objects/CryptSecretDoorSwitch" and e.distance_to_player < 30), None)
+  if switch_nearby:
+    poe_bot.mover.goToEntitysPoint(switch_nearby)
+    poe_bot.combat_module.clearAreaAroundPoint(switch_nearby.grid_position.toList())
+    switch_nearby.clickTillNotTargetable()
+    return True
+  return False
+
+def custom_default_continue_function(*args, **kwargs):
+  pass
+
 poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
 
 
@@ -157,15 +175,26 @@ poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRouti
 # In[14]:
 
 
+from utils.encounters import EssenceEncounter
+from utils.constants import ESSENCES_KEYWORD
+
 rares_detection_radius = 999
 
+
+
+def seekForEssences(search_loc = None):
+  '''
+  search_loc: [gridx,gridy]
+  '''
+  essences = list(filter(lambda e: e.is_targetable is True and ESSENCES_KEYWORD in e.path and poe_bot.game_data.terrain.checkIfPointPassable(e.grid_position.x, e.grid_position.y), poe_bot.game_data.entities.all_entities))
+  return essences
+
 def runnerBreakFunction(*args, **kwargs):
-  switch_nearby = next( (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable and e.path == "Metadata/Terrain/Maps/Crypt/Objects/CryptSecretDoorSwitch" and e.distance_to_player < 30), None)
-  if switch_nearby:
-    poe_bot.mover.goToEntitysPoint(switch_nearby)
-    poe_bot.combat_module.clearAreaAroundPoint(switch_nearby.grid_position.toList())
-    switch_nearby.clickTillNotTargetable()
+
+  '''crypt map'''
+  if activateSwitchesNearby() == True:
     return True
+  '''crypt map'''
 
   if rares_detection_radius != 0:
     rares_nearby = list(filter(lambda e: e.distance_to_player < rares_detection_radius, poe_bot.game_data.entities.attackable_entities_rares))
@@ -173,9 +202,24 @@ def runnerBreakFunction(*args, **kwargs):
       updated_entity = list(filter(lambda e: e.id == rare_mob.id, poe_bot.game_data.entities.attackable_entities_rares))
       if len(updated_entity) != 0:
         updated_entity = updated_entity[0]
-        poe_bot.mover.goToEntitysPoint(updated_entity, min_distance=50)
-        poe_bot.combat_module.killUsualEntity(updated_entity)
+        def custom_continue_func(*args, **kwargs):
+          if activateSwitchesNearby() == True:
+            return True
+          if poe_bot.loot_picker.collectLoot() == True:
+            return True
+          return False
+        while True:
+          res = poe_bot.mover.goToEntitysPoint(updated_entity,custom_break_function=custom_continue_func, min_distance=50)
+          if res is None:
+            break
+        poe_bot.combat_module.killTillCorpseOrDisappeared(updated_entity)
         return True
+  essences = seekForEssences()
+  if len(essences) != 0:
+    essence_encounter = EssenceEncounter(poe_bot, essences[0])
+    essence_encounter.doEncounter()
+    poe_bot.loot_picker.collectLoot()
+    return True
 
   loot_collected = poe_bot.loot_picker.collectLoot()
   if loot_collected is True:
@@ -267,7 +311,30 @@ if poe_bot.ui.map_device.place_map_window_opened != True:
 
 
 
+# In[ ]:
+
+
+
+
+
 # In[17]:
+
+
+# screen_pos_x, screen_pos_y = poe_bot.game_window.center_point
+# pos_x, pos_y = poe_bot.game_window.convertPosXY(screen_pos_x, screen_pos_y)
+# poe_bot.bot_controls.mouse.setPos(pos_x, pos_y)
+
+
+# poe_bot.ui.map_device.update()
+# updated_map_obj = next( (m for m in poe_bot.ui.map_device.avaliable_maps if m.id == map_obj.id))
+
+# screen_pos_x, screen_pos_y = updated_map_obj.screen_pos.toList()
+# pos_x, pos_y = poe_bot.game_window.convertPosXY(screen_pos_x, screen_pos_y)
+# # poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y)
+# poe_bot.bot_controls.mouse.setPos(pos_x, pos_y)
+
+
+# In[18]:
 
 
 poe_bot.ui.inventory.update()
@@ -296,7 +363,7 @@ poe_bot.ui.map_device.update()
 poe_bot.ui.map_device.checkIfActivateButtonIsActive()
 
 
-# In[18]:
+# In[19]:
 
 
 poe_bot.ui.map_device.activate()
@@ -326,7 +393,7 @@ except Exception as e:
     raise Exception('smth happened on getToPortal')
 
 
-# In[19]:
+# In[20]:
 
 
 # raise 404
@@ -410,7 +477,7 @@ while map_complete is False:
   # if possible_transition to explore, go to it, run discovery again
 
 
-# In[ ]:
+# In[22]:
 
 
 # open portal and enter it
@@ -444,7 +511,7 @@ while True:
     
 
 
-# In[ ]:
+# In[23]:
 
 
 raise 404
@@ -456,7 +523,7 @@ raise 404
 prefer_high_tier = True
 
 
-# In[19]:
+# In[ ]:
 
 
 poe_bot.refreshAll()
@@ -956,4 +1023,32 @@ def findBackwardsPoint(current_point, point_to_go):
     print(f"angle {angle} {length}, {last_point}, {dist_to_last_point}")
   return furthest_point
 findBackwardsPoint(player_pos, pos_to_go)
+
+
+# In[18]:
+
+
+from utils.pathing import TSP
+
+
+# In[ ]:
+
+
+tsp = TSP(poe_bot)
+
+tsp.generatePointsForDiscovery()
+#TODO astar sorting
+discovery_points = tsp.sortedPointsForDiscovery()
+
+
+# In[ ]:
+
+
+poe_bot.game_data.player.grid_pos.toList()
+
+
+# In[ ]:
+
+
+discovery_points
 
