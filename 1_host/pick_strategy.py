@@ -19,6 +19,7 @@ class PickStrategy:
             "Art/2DItems/Currency/CurrencyUpgradeToUnique.dds",  # chance
         ]
         
+        # "Art/2DItems/Currency/Essence/GreaterFireEssence.dds"
         # Add big piles of gold
         for tier in range(2, 17):
             self._arts_to_pick.append(f"Art/2DItems/Currency/Ruthless/CoinPileTier{tier}.dds")
