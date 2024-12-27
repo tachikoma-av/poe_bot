@@ -1191,7 +1191,7 @@ def doAlvaEncounter(entrance_portal_entity:Entity):
               check_if_passable=True
             )
             poe_bot.mover.move(grid_pos_x = point[0], grid_pos_y = point[1])
-            poe_bot.combat_module.build.usualRoutine()
+            poe_bot.combat_module.build.staticDefence()
     incursion_enter_portal = openIncursionRoom()
   else:
     print(f'portal is targetable, no need to open incursion again')
@@ -1202,7 +1202,7 @@ def doAlvaEncounter(entrance_portal_entity:Entity):
   distance_to_incursion_portal = dist( (poe_bot.game_data.player.grid_pos.x,poe_bot.game_data.player.grid_pos.y), (incursion_enter_portal.grid_position.x, incursion_enter_portal.grid_position.y))
   print(f'distance to incursion portal {distance_to_incursion_portal}')
   if distance_to_incursion_portal > 50:
-    poe_bot.mover.goToEntitysPoint(incursion_enter_portal, custom_continue_function=poe_bot.combat_module.build.usualRoutine)
+    poe_bot.mover.goToEntitysPoint(incursion_enter_portal, custom_continue_function=poe_bot.combat_module.build.staticDefence)
   poe_bot.mover.enterTransition(incursion_enter_portal, screen_pos_offset=[7,7])
   mapper.temp.alvas_to_ignore_ids.append(alva_entity.id)
   mapper.temp.alvas_to_ignore_ids.append(entrance_portal_entity.id)
@@ -1243,7 +1243,7 @@ def doAlvaEncounter(entrance_portal_entity:Entity):
             check_if_passable=True
           )
           mover.move(grid_pos_x = point[0], grid_pos_y = point[1])
-          poe_bot.combat_module.build.usualRoutine()
+          poe_bot.combat_module.build.staticDefence()
         else:
           poe_bot.ui.inventory.update()
           itemised_temples_in_inventory_now = list(filter(lambda item: item.name == "Chronicle of Atzoatl", poe_bot.ui.inventory.items))

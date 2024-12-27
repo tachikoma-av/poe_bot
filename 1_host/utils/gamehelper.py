@@ -760,6 +760,13 @@ class Player:
       (ignore_visibility or e.isInRoi()),
     self.poe_bot.game_data.entities.attackable_entities))
     return nearby_enemies
+  def isInZone(self,x1,x2,y1,y2):
+    if self.grid_pos.x > x1:
+      if self.grid_pos.x < x2:
+        if self.grid_pos.y > y1:
+          if self.grid_pos.y < y2:
+            return True
+    return False
 class ItemLabels:
   def __init__(self) -> None:
     pass

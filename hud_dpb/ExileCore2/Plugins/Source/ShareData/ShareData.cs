@@ -7,57 +7,35 @@ using System.Net.Sockets;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 using SharpDX;
-
-using System.Collections.Generic;
 
 using ExileCore2;
 using ExileCore2.PoEMemory;
 using ExileCore2.PoEMemory.Components;
 using ExileCore2.PoEMemory.MemoryObjects;
 using ExileCore2.Shared;
-
 using ExileCore2.Shared.Enums;
 using ExileCore2.Shared.Helpers;
-
-
 using GameOffsets2.Native;
 using Stack = ExileCore2.PoEMemory.Components.Stack;
+
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShareData;
-
-
 public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 {
 
-    public Server ServerInstance = null;
     private static bool ServerIsRunning = false;
     private const int DefaultServerPort = 50000;
 
     public override bool Initialise()
     {
         GameController.LeftPanel.WantUse(() => Settings.Enable);
-
         int ServerPort = GetServerPort();
-        ServerInstance = new Server(ServerPort);
-        // https://github.com/IlliumIv/FollowerV2/blob/772c2ab6a6c968dc8e1b44daf842b0d9c0c96f41/FollowerV2.cs as a better way to run a server Task.Run(() => MainRequestingWork());
-        // var dataUpdateCoroutine = new Coroutine(DataUpdateEvent(), this);
-        // var serverRestartCoroutine = new Coroutine(ServerRestartEvent(), this);
-        // Core.ParallelRunner.Run(dataUpdateCoroutine);
-        // Core.ParallelRunner.Run(serverRestartCoroutine);
-
         Task.Run(() => ServerRestartEvent());
-
-        // {
-        //     Task.Run(() =>
-        //     {
-        //         ServerRestartEvent();
-        //     });
-        // };
-
         return true;
     }
     private int GetServerPort()
@@ -79,16 +57,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         }
 
         return Port;
-    }
-    private void RunServer()
-    {
-        try
-        {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(ServerInstance.RunServer));
-        }
-        catch (Exception e) {
-            DebugWindow.LogError($"{nameof(ShareData)}. Cant't run server with exception -> {e}");
-        }
     }
     public static byte WalkableValue(byte[] data, int bytesPerRow, long c, long r)
     {
@@ -500,6 +468,9 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         } else if (request.Url.AbsolutePath =="/getNecropolisPopupUI"){
             var response = getNecropolisPopupUI();
             return Newtonsoft.Json.JsonConvert.SerializeObject(response, Newtonsoft.Json.Formatting.Indented);
+        } else if (request.Url.AbsolutePath =="/getMapInfo"){
+            var response = getMapInfo();
+            return Newtonsoft.Json.JsonConvert.SerializeObject(response, Newtonsoft.Json.Formatting.Indented);
         } else if (request.Url.AbsolutePath =="/getIncursionUi"){
             try{
                 var response = getIncursionUi();
@@ -598,7 +569,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         }
         return response;
     }
-
     public GetOpenedStashInfoObject getInventoryInfo(){
         GetOpenedStashInfoObject inventory_info = new GetOpenedStashInfoObject();
         var inventory_panel_element = GameController.IngameState.IngameUi.InventoryPanel;
@@ -967,6 +937,26 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 };
                 el.choices.Add(item);
             }
+        }
+        return el;
+    }
+    public MapUi_c getMapInfo(){
+        MapUi_c el = new MapUi_c();
+        el.v = GameController.IngameState.IngameUi.Map.IsVisible ? 1 : 0;
+        el.elements = new List<BlueLine_c>();
+
+        foreach (var blue_line in GameController.IngameState.IngameUi.Map.BlueWords.Children){
+            BlueLine_c blue_line_obj = new BlueLine_c();
+            var el_rect = blue_line.GetClientRect();
+            blue_line_obj.sz = new List<int> {
+                (int)el_rect.X, 
+                (int)(el_rect.X + el_rect.Width), 
+                (int)el_rect.Y, 
+                (int)(el_rect.Y + el_rect.Height), 
+            };
+            blue_line_obj.t = blue_line.TextNoTags;
+            blue_line_obj.v = blue_line.IsVisible ? 1 : 0;
+            el.elements.Add(blue_line_obj);
         }
         return el;
     }
@@ -1622,7 +1612,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             };
 
             // area related
-            response.IsLoading = GameController.Game.IsLoading;
+            // response.IsLoading = GameController.Game.IsLoading;
+            response.IsLoading = GameController.IngameState.InGame;
             response.ipv = GameController.IngameState.IngameUi.InvitesPanel.IsVisible;
             response.IsLoading_b = false;
 
@@ -1700,253 +1691,5 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     }
 
 
-    public class Client
-    {
 
-        private void SendHeaders(TcpClient Client, int StatusCode, string StatusCodeSuffix)
-        {
-            string Headers = (
-                $"HTTP/1.1 {StatusCode} {StatusCodeSuffix}\n" +
-                "Content-Type: application/json\n" +
-                "Connection: Keep-Alive\n" +
-                "Keep-Alive: timeout=15\n\n"
-            );
-            byte[] HeadersBuffer = Encoding.UTF8.GetBytes(Headers);
-            Client.GetStream().Write(HeadersBuffer, 0, HeadersBuffer.Length);
-        }
-
-        private void SendRequest(TcpClient Client, string Content, int StatusCode, string StatusCodeSuffix = "")
-        {
-
-            SendHeaders(Client, StatusCode, StatusCodeSuffix);
-
-            byte[] Buffer = Encoding.UTF8.GetBytes(Content);
-            Client.GetStream().Write(Buffer, 0, Buffer.Length);
-            Client.Close();
-        }
-
-        private string ParseRequest1(TcpClient Client)
-        {
-            string Request = "";
-            byte[] Buffer = new byte[1024];
-            int Count;
-
-            while ((Count = Client.GetStream().Read(Buffer, 0, Buffer.Length)) > 0)
-            {
-                Request += Encoding.UTF8.GetString(Buffer, 0, Count);
-
-                if (Request.IndexOf("\r\n\r\n") >= 0 || Request.Length > 4096)
-                {
-                    break;
-                }
-            }
-
-            Match ReqMatch = Regex.Match(Request, @"^\w+\s+([^\s\?]+)[^\s]*\s+HTTP/.*|");
-
-            if (ReqMatch == Match.Empty)
-            {
-                return "";
-            }
-
-            return ReqMatch.Groups[1].Value;
-        }
-        private string ParseRequest(TcpClient Client)
-        {
-            string Request = "";
-            byte[] Buffer = new byte[1024];
-            int Count;
-
-            while ((Count = Client.GetStream().Read(Buffer, 0, Buffer.Length)) > 0)
-            {
-                Request += Encoding.UTF8.GetString(Buffer, 0, Count);
-
-                if (Request.IndexOf("\r\n\r\n") >= 0 || Request.Length > 4096)
-                {
-                    break;
-                }
-            }
-            // DebugWindow.LogError(Request);
-
-            try
-            {
-                var some_str = Request.Split(new [] { "GET " }, StringSplitOptions.None)[1].Split(new [] { " HTTP" }, StringSplitOptions.None)[0];
-                return some_str;
-                
-            }
-            catch (System.Exception)
-            {
-                return "";
-            }
-
-            Match ReqMatch = Regex.Match(Request, @"^\w+\s+([^\s\?]+)[^\s]*\s+HTTP/.*|");
-
-            if (ReqMatch == Match.Empty)
-            {
-                return "";
-            }
-
-            return ReqMatch.Groups[1].Value;
-        }
-
-        public static byte WalkableValue(byte[] data, int bytesPerRow, long c, long r)
-        {
-            var offset = r * bytesPerRow + c / 2;
-            if (offset < 0 || offset >= data.Length)
-            {
-                throw new Exception(string.Format($"WalkableValue failed: ({c}, {r}) [{bytesPerRow}] => {offset}"));
-            }
-
-            byte b;
-            if ((c & 1) == 0)
-            {
-                b = (byte)(data[offset] & 0xF);
-            }
-            else
-            {
-                b = (byte)(data[offset] >> 4);
-            }
-            return b;
-        }
-
-        // private TerrainData _terrainMetadata;
-        public static StringBuilder generateMinimap()
-        {
-            StringBuilder sb = new StringBuilder();
-            int MapCellSizeI = 23;
-            // var _terrainMetadata = GameController.IngameState.Data.DataStruct.Terrain;
-            // var MeleeLayerPathfindingData = GameController.Memory.ReadStdVector<byte>(Cast(_terrainMetadata.LayerMelee));
-
-            // var BytesPerRow = _terrainMetadata.BytesPerRow;
-            // var Rows = _terrainMetadata.NumRows;
-            // var Cols = _terrainMetadata.NumCols;
-
-            // for (var r = Rows * MapCellSizeI - 1; r >= 0; --r)
-            // {
-            //     for (var c = 0; c < Cols * MapCellSizeI; c++)
-            //     {
-            //         var b = WalkableValue(MeleeLayerPathfindingData, BytesPerRow, c, r);
-            //         // var b = 1;
-            //         var ch = b.ToString()[0];
-            //         if (b == 0)
-            //             ch = '0';
-            //         sb.AppendFormat("{0}", ch);
-            //     }
-            //     sb.AppendLine();
-            // }
-            return sb;
-        }
-
-
-        public Client(TcpClient Client)
-        
-        {
-
-
-
-
-            
-            try
-            {
-                string RequestUri = ParseRequest(Client);
-                RequestUri = Uri.UnescapeDataString(RequestUri);
-                DebugWindow.LogError("got request");
-                string unixTimestamp = Convert.ToString((int)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
-                DebugWindow.LogError(RequestUri);
-                if (RequestUri.Contains("/getData") == true){
-
-                    GetDataObject response = new GetDataObject();
-
-                    var request_type = "partial";
-                    try{
-                        request_type = RequestUri.Split(new [] { "type=" }, StringSplitOptions.None)[1].Split(new [] { "&" }, StringSplitOptions.None)[0];
-                        request_type = "full";
-                    }
-                    catch (Exception ex)
-                    {
-                        // do none
-                    }
-                    DebugWindow.LogError("request type is: ");
-                    DebugWindow.LogError(request_type);
-
-                    if (request_type == "full"){
-                        response.terrain_string = generateMinimap().ToString();
-                    } else {
-                        response.terrain_string = "";
-                    }
-
-                    var content = Newtonsoft.Json.JsonConvert.SerializeObject(response, Newtonsoft.Json.Formatting.Indented);
-                    SendRequest(
-                        Client,
-                        content, 200, "OK"
-                    );
-                } else if (RequestUri.Contains("/getScreenPos") == true){
-                    int y = int.Parse(RequestUri.Split(new [] { "y=" }, StringSplitOptions.None)[1].Split(new [] { "&" }, StringSplitOptions.None)[0]);
-                    int x = int.Parse(RequestUri.Split(new [] { "x=" }, StringSplitOptions.None)[1].Split(new [] { "&" }, StringSplitOptions.None)[0]);
-                    List<float> pos = DataBuilder.getScreenPos(x, y);
-                    string content = Newtonsoft.Json.JsonConvert.SerializeObject(pos, Newtonsoft.Json.Formatting.Indented);
-                    SendRequest(
-                        Client,
-                        content, 200, "OK"
-                    );
-                } 
-
-                Client.Close();
-
-            }
-            catch (Exception e) {
-                DebugWindow.LogError($"{nameof(Client)} in Client -> {e}");
-                Client.Close();
-            }
-        }
-    }
-
-    public class Server
-    {
-        TcpListener Listener;
-        int Port;
-
-        public Server(int ServerPort)
-        {
-            Port = ServerPort;
-        }
-
-        public void RunServer(Object StateInfo)
-        {
-            try
-            {
-                Listener = new TcpListener(IPAddress.Any, Port);
-                Listener.Start();
-                
-                ServerIsRunning = true;
-                
-                while (ServerIsRunning)
-                {
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(ClientThread), Listener.AcceptTcpClient());
-                }
-
-                Listener.Stop();
-            }
-            catch (Exception e) {
-                DebugWindow.LogError($"{nameof(Server)} was crashed -> {e}");
-                using (StreamWriter sw = new StreamWriter("ShareDataCrashLog")) 
-                {
-                    sw.Write($"{nameof(Server)} was crushed -> {e}");
-                }
-                ServerIsRunning = false;
-                Listener.Stop();
-                return;
-            }
-        }
-
-        public void ClientThread(Object StateInfo)
-        {
-            try
-            {
-                new Client((TcpClient)StateInfo);
-            }
-            catch (Exception e) {
-                DebugWindow.LogError($"{nameof(Server)} ClientThread was crushed -> {e}");
-            }
-        }
-    }
 }

@@ -1918,7 +1918,7 @@ class Loc1_1_9(QuestArea):
       else:
         point = poe_bot.game_data.terrain.pointToRunAround(npc_pos_x, npc_pos_y, 15+random.randint(-1,1), check_if_passable=True, reversed=reversed_run)
         mover.move(grid_pos_x = point[0], grid_pos_y = point[1])
-        poe_bot.combat_module.build.usualRoutine()
+        poe_bot.combat_module.build.staticDefence()
     self.possible_to_enter_transitions.append("The Cavern of Wrath")
     
 

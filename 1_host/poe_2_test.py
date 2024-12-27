@@ -40,7 +40,63 @@ poe_bot = Poe2Bot(
 )
 poe_bot.refreshAll()
 
-poe_bot.combat_module.build = DonColdMonkBuild(poe_bot=poe_bot)
+
+
+# In[7]:
+
+
+from utils.loot_filter import PickableItemLabel
+
+ARTS_TO_PICK = [
+  "Art/2DItems/Currency/CurrencyModValues.dds", # divine
+  "Art/2DItems/Currency/CurrencyGemQuality.dds", # gemcutter
+  "Art/2DItems/Currency/CurrencyRerollRare.dds", # chaos
+  "Art/2DItems/Currency/CurrencyAddModToRare.dds", # exalt
+  "Art/2DItems/Currency/CurrencyUpgradeToUnique.dds", # chance
+]
+
+# big piles of gold
+for tier in range(2,17):
+  ARTS_TO_PICK.append(f"Art/2DItems/Currency/Ruthless/CoinPileTier{tier}.dds")
+# waystones
+for tier in range(1,17):
+  ARTS_TO_PICK.append(f"Art/2DItems/Maps/EndgameMaps/EndgameMap{tier}.dds")
+
+# "Art/2DItems/Currency/Essence/GreaterFireEssence.dds"
+
+def isItemHasPickableKey(item_label:PickableItemLabel):
+  if item_label.icon_render in ARTS_TO_PICK:
+    return True
+  return False
+poe_bot.loot_picker.loot_filter.special_rules = [isItemHasPickableKey]
+
+
+# In[8]:
+
+
+# poe_bot.mover.setMoveType('wasd')
+
+
+# In[9]:
+
+
+from utils.combat import PathfinderPoisonConc2
+
+# poe_bot.combat_module.build = InfernalistZoomancer(poe_bot=poe_bot)
+poe_bot.combat_module.build = PathfinderPoisonConc2(poe_bot=poe_bot)
+
+def activateSwitchesNearby():
+  switch_nearby = next( (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable and e.path == "Metadata/Terrain/Maps/Crypt/Objects/CryptSecretDoorSwitch" and e.distance_to_player < 30), None)
+  if switch_nearby:
+    poe_bot.mover.goToEntitysPoint(switch_nearby)
+    poe_bot.combat_module.clearAreaAroundPoint(switch_nearby.grid_position.toList())
+    switch_nearby.clickTillNotTargetable()
+    return True
+  return False
+
+def custom_default_continue_function(*args, **kwargs):
+  pass
+
 poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
 
 
@@ -83,9 +139,6 @@ hideout_preparations = HideoutPreparations([
 # essences[0].id
 
 
-
-
-# Main loop logic
 while True:
   poe_bot.refreshAll()
 
@@ -97,13 +150,6 @@ while True:
       hideout_preparations(poe_bot)
   else:
       print("DEBUG: not in hideout, skipping hideout preparations")
-
-  # Next step is to complete map itself
-  map_traverser(poe_bot)
-
-  # And return back to hideout
-  ReturnFromMapToHideoutStrategy()(poe_bot)
-
 
 
 
@@ -659,4 +705,32 @@ def findBackwardsPoint(current_point, point_to_go):
   return furthest_point
 findBackwardsPoint(player_pos, pos_to_go)
 
+
+
+# In[18]:
+
+
+from utils.pathing import TSP
+
+
+# In[ ]:
+
+
+tsp = TSP(poe_bot)
+
+tsp.generatePointsForDiscovery()
+#TODO astar sorting
+discovery_points = tsp.sortedPointsForDiscovery()
+
+
+# In[ ]:
+
+
+poe_bot.game_data.player.grid_pos.toList()
+
+
+# In[ ]:
+
+
+discovery_points
 

@@ -98,6 +98,26 @@ public class UltimatumNextWaveUi{
     public string chosen; // if choice is made
 
 }
+public class PartyMember_c{
+    public string ign { get; set; } // text
+    public bool is_leader; // visible
+    public string area_raw_name { get; set; } // text
+    public bool same_location; // visible
+
+}
+public class PartyInfo_c{
+    public List<PartyMember_c> party_members { get; set; }
+}
+
+public class BlueLine_c{
+    public string t { get; set; } // text
+    public List<int> sz { get; set; } // label screen zone x1 x2 y1 y2
+    public int v; // visible
+}
+public class MapUi_c{
+    public int v; // visible
+    public List<BlueLine_c> elements { get; set; } 
+}
 public class ResurrectUi_c{
     public int v; // visible
     public List<int> sz { get; set; } // label screen zone x1 x2 y1 y2

@@ -296,7 +296,219 @@ class Bossroom(Encounter):
     if self.leave_bossroom_after_clear:
       self.leaveBossroom()
 class EssenceEncounter(Encounter):
-  pass
+  def __init__(self, poe_bot, encounter_entity:Entity):
+    super().__init__(poe_bot)
+    self.encounter_entity = encounter_entity
+  def doEncounter(self):
+    poe_bot = self.poe_bot
+    inventory = poe_bot.ui.inventory
+    mover = self.poe_bot.mover
+    # debug
+    # poe_bot.refreshInstanceData()
+    # go to around essence
+
+
+    essence_monolith = self.encounter_entity
+    print(f'#[EssenceEncounter.doEncounter] nearby {essence_monolith} call at {time.time()}')
+    essence_opened = False
+    essence_monolith_id = essence_monolith.id
+    grid_pos_x = essence_monolith.grid_position.x
+    grid_pos_y = essence_monolith.grid_position.y
+
+
+    while True:
+      res = mover.goToEntitysPoint(
+        entity_to_go=essence_monolith,
+        min_distance=75,
+        custom_break_function=poe_bot.loot_picker.collectLoot,
+        release_mouse_on_end=False,
+        step_size=random.randint(25,33)
+      )
+      if res is None:
+        break
+
+    '''corruption start'''
+    # valuable_essences = ["Misery", "Envy", "Dread", "Scorn"]
+    # visible_labels = poe_bot.backend.getVisibleLabels()
+
+    # essence_label = list(filter(lambda label:label['id'] == essence_monolith_id,visible_labels))[0]
+    # essence_label_id = essence_label['id']
+    # print(f'essence_label {essence_label}')
+    # essence_texts = ' '.join(essence_label['texts'])
+
+    # shrieking_count = len(essence_texts.split("Shrieking"))-1
+    # screaming_count = len(essence_texts.split("Screaming"))-1
+    # deafening_count = len(essence_texts.split("Deafening"))-1
+    # remnant_of_corruption_count = len(essence_texts.split('Remnant of Corruption'))-1
+
+    # print(f'screaming_count {screaming_count}')
+    # print(f'shrieking_count {shrieking_count}')
+    # print(f'deafening_count {deafening_count}')
+
+    # valuable_mods_count = shrieking_count + screaming_count + deafening_count + remnant_of_corruption_count
+    # if any(list(map(lambda string: string in essence_texts, ["Horror", "Delirium", "Hysteria"]))):
+    #   valuable_mods_count += 2
+    # print(f'valuable_mods_count {valuable_mods_count}')
+    # if mapper.settings.essences_do_all is False and valuable_mods_count < 1:
+    #   print(f'not worth to open this essence')
+    #   mapper.temp.essences_to_ignore_ids.append(essence_label_id)
+    #   return True
+    '''corruption end'''
+    poe_bot.combat_module.clearLocationAroundPoint({"X": essence_monolith.grid_position.x, "Y": essence_monolith.grid_position.y}, detection_radius=45)
+    poe_bot.refreshInstanceData()
+    essence_mobs = list(filter(lambda e: e.grid_position.x == essence_monolith.grid_position.x and e.grid_position.y == essence_monolith.grid_position.y and e.rarity == 'Rare', poe_bot.game_data.entities.all_entities))
+    
+    essences = list(filter(lambda entity: essence_monolith_id == entity.id,poe_bot.game_data.entities.all_entities))
+    if len(essences) == 0:
+      print(f'[EssenceEncounter.doEncounter] len(essences) == 0 after we arrived')
+      return False
+
+    print(f'[EssenceEncounter.doEncounter] essence_mobs {essence_mobs}')
+
+    # opening essence
+    essence_monolith = essences[0]
+    poe_bot.combat_module.build.prepareToFight(essence_monolith)
+
+    '''corruption start'''
+    # need_to_corrupt = False
+    # if any(list(map(lambda key: key in essence_texts, valuable_essences))) is True:
+    #   need_to_corrupt = True
+
+    # essence_mods_len = shrieking_count + screaming_count
+    # print(f'essences_count in essence: {essence_mods_len}, min essences to corrupt {mapper.settings.essences_min_to_corrupt}')
+    # if essence_mods_len >= mapper.settings.essences_min_to_corrupt:
+    #   need_to_corrupt = True
+
+    # # need_to_corrupt = True;print('#debug remove need_to_corrupt = True')
+    # if 'Remnant of Corruption' in essence_texts or "Corrupted" in essence_label['texts']:
+    #   need_to_corrupt = False
+    # print(f'need_to_corrupt {need_to_corrupt}')
+
+
+    # print(f'mapper.settings.essences_can_corrupt {mapper.settings.essences_can_corrupt} need_to_corrupt {need_to_corrupt}')
+    # # if False:
+    # if mapper.settings.essences_can_corrupt is True and need_to_corrupt is True:
+    #   inventory_items = inventory.update()
+    #   remnants_of_corruptions = list(filter(lambda item: item.name == 'Remnant of Corruption', inventory.items))
+    #   if len(remnants_of_corruptions) != 0:
+    #     print(f'have {len(remnants_of_corruptions)} remnantofcorruption, corrupting it')
+    #     essence_corrupted = False
+    #     while True:
+          
+    #       # get to it
+    #       print('going to essence to corrupt it')
+    #       while True:
+    #         poe_bot.refreshInstanceData()
+    #         poe_bot.last_action_time = 0
+    #         res = mover.goToPoint(
+    #           point=(grid_pos_x, grid_pos_y),
+    #           min_distance=30,
+    #           custom_continue_function=build.usualRoutine,
+    #           release_mouse_on_end=True,
+    #           # release_mouse_on_end=False,
+    #           step_size=random.randint(25,33)
+    #         )
+    #         if res is None:
+    #           break
+
+    #       visible_labels = poe_bot.backend.getVisibleLabels()
+    #       updated_essence_label = list(filter(lambda label: label['id'] == essence_label_id, visible_labels))[0]
+    #       print(f'updated_essence_label {updated_essence_label}')
+          
+
+    #       poe_bot.bot_controls.keyboard_pressKey('DIK_LSHIFT')
+    #       inventory.open()
+    #       remnant_of_corruptions = remnants_of_corruptions[0]
+    #       remnant_of_corruptions.hover()
+    #       time.sleep(random.randint(2,4)/100)
+    #       remnant_of_corruptions.click(button='right')
+    #       poe_bot.bot_controls.keyboard_pressKey('DIK_LSHIFT')
+    #       for i in range(10):
+    #         visible_labels = poe_bot.backend.getVisibleLabels()
+    #         updated_essence_labels = list(filter(lambda label: label['id'] == essence_label_id, visible_labels))
+    #         if len(updated_essence_labels) == 0:
+    #           print(f'seems like we opened essence:(')
+    #           essence_corrupted = True
+    #           break
+    #         updated_essence_label = updated_essence_labels[0]
+    #         print(f'updated_essence_label {updated_essence_label}')
+    #         if 'Corrupted' in updated_essence_label['texts']:
+    #           print(f'essence is corrupted, success')
+    #           essence_corrupted = True
+    #           break
+    #         essence_label_center = [ (updated_essence_label['p_o_s']['x1'] + updated_essence_label['p_o_s']['x2'])/2, (updated_essence_label['p_o_s']['y1'] + updated_essence_label['p_o_s']['y2'])/2 ]
+    #         if essence_label_center[0] > 512:
+    #           essence_label_center[0] = 512
+    #         item_pos_x,item_pos_y = poe_bot.convertPosXY(essence_label_center[0],essence_label_center[1])
+    #         bot_controls.mouse.setPosSmooth(int(item_pos_x),int(item_pos_y))
+    #         time.sleep(random.randint(2,4)/100)
+    #         bot_controls.mouse.click()
+            
+    #         visible_labels = poe_bot.backend.getVisibleLabels()
+    #         updated_essence_label = next( (label for label in visible_labels if label['id'] == essence_label_id), None)
+    #         if updated_essence_label == None:
+    #           print(f'essence opened by itself')
+    #           essence_corrupted = True
+    #           essence_opened = True
+    #           break
+    #         updated_essence_label = list(filter(lambda label: label['id'] == essence_label_id, visible_labels))[0]
+    #         print(f'updated_essence_label {updated_essence_label}')
+    #       poe_bot.bot_controls.keyboard_releaseKey('DIK_LSHIFT')
+    #       for i in range(random.randint(2,3)):
+    #         poe_bot.bot_controls.keyboard.tap('DIK_SPACE', wait_till_executed=False)
+    #       if essence_corrupted is True:
+    #         break
+
+
+    #   else:
+    #     print('dont have remnant of corruption')
+    '''corruption end'''
+
+    _i = 0
+    while essence_opened is False and len(essences) != 0:
+      _i += 1
+      if _i > 50:
+        poe_bot.helper_functions.relog()
+        raise Exception('cannot open essence monolith for 50 iterations')
+      essences = list(filter(lambda entity: essence_monolith_id == entity.id,poe_bot.game_data.entities.all_entities))
+      # if len(essences) == 0:
+      #   break
+      essence_monolith = essences[0]
+      print(f'[EssenceEncounter.doEncounter] essence_monolith {essence_monolith}')
+      if essence_monolith.distance_to_player > 40:
+        print(f'[EssenceEncounter.doEncounter] essence_monolith distance to player is too far away, getting closer')
+        mover.goToEntitysPoint(
+          entity_to_go=essence_monolith, 
+          release_mouse_on_end=False,
+          # release_mouse_on_end=True,
+          step_size=random.randint(25,33)
+        )
+        continue
+      pos_x, pos_y = poe_bot.convertPosXY(essence_monolith.location_on_screen.x,essence_monolith.location_on_screen.y)
+      print(f'[EssenceEncounter.doEncounter] opening essence on {pos_x, pos_y}')
+      poe_bot.bot_controls.mouse.setPosSmooth(pos_x,pos_y)
+      # time.sleep(random.randint(5,7)/100)
+      poe_bot.bot_controls.mouse.click()
+      # time.sleep(random.randint(7,10)/100)
+      poe_bot.refreshInstanceData()
+      poe_bot.last_action_time = 0
+      essences = list(filter(lambda entity: essence_monolith_id == entity.id,poe_bot.game_data.entities.all_entities))
+      if len(essences) == 0 or essences[0].is_targetable is False :
+        break
+    print('[EssenceEncounter.doEncounter] essence opened')
+    if len(essence_mobs) != 0:
+      main_essence_mob = essence_mobs[0]
+      print(f'[EssenceEncounter.doEncounter] main_essence_mob {main_essence_mob}')
+      # entities_to_kill = list(filter(lambda e: e.path == main_essence_mob.path and e.distance_to_player < 40 and e.rarity == 'Rare', poe_bot.game_data.entities.all_entities))
+      entities_to_kill = list(filter(lambda e: e.path == main_essence_mob.path and e.distance_to_player < 40 and e.rarity == 'Rare' and e.is_attackable is True, poe_bot.game_data.entities.all_entities))
+      print(f'[EssenceEncounter.doEncounter] entities_to_kill {entities_to_kill}')
+      for entity in entities_to_kill:
+        poe_bot.combat_module.killTillCorpseOrDisappeared(entity)
+    else:
+      point_to_run_around = {"X": essence_monolith.grid_position.x, "Y": essence_monolith.grid_position.y}
+      poe_bot.combat_module.clearLocationAroundPoint(point_to_run_around)
+    poe_bot.refreshInstanceData()
+    print(f'#[EssenceEncounter.doEncounter] nearby {essence_monolith} return at {time.time()}')
 class UltimatumEncounter(Encounter):
   poe_bot: PoeBot
   ultimatum_altar:Entity
