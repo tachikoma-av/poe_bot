@@ -390,7 +390,7 @@ class HelperFunctions:
     
     if poe_bot.debug is True:print(f'#openPortal return {time.time()}')
     return 
-  def waitForNewPortals(self, wait_for_seconds = 3, sleep_time=3):
+  def waitForNewPortals(self, wait_for_seconds = 10, sleep_time=3):
     poe_bot = self.poe_bot
     start_time = time.time()
     time_now = time.time()
@@ -476,6 +476,10 @@ class HelperFunctions:
     bot_controls.keyboard.tap('DIK_T')
     time.sleep(1)
     bot_controls.keyboard.tap('DIK_RETURN')
+
+  def getPortals(self):
+    return list(filter(lambda entity: 'MultiplexPortal' in entity.path, self.poe_bot.game_data.entities.all_entities))
+
   def getToPortal(self,check_for_map_device = True, refresh_area = True):
     poe_bot = self.poe_bot
     bot_controls = poe_bot.bot_controls
@@ -485,7 +489,7 @@ class HelperFunctions:
       map_device = next( (e for e in poe_bot.game_data.entities.all_entities if 'MappingDevice' in e.path), None)
       if not map_device:
         raise Exception("No mapping device")
-    portals = list(filter(lambda entity: 'MultiplexPortal' in entity.path, poe_bot.game_data.entities.all_entities))
+    portals = self.getPortals()
     if len(portals) == 0:
       raise Exception("No portals")
     
