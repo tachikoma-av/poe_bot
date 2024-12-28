@@ -4381,7 +4381,9 @@ HITTER_SKILLS = [
   'splitting_steel',
   'frost_blades',
   'lightning_strike',
+  'ice_strike',
   'flicker_strike',
+  'quarterstaff_combo_attack' # for some reasone it is ice strike
 ]
 
 #   'smite',
@@ -5278,8 +5280,22 @@ class PathfinderPoisonConc2(Build):
 
 
 
+class DonColdMonkBuild(GenericHitter):
+    '''
+    '''
+    poe_bot: PoeBot
+
+    def __init__(self, poe_bot: PoeBot) -> None:
+        self.poe_bot = poe_bot
+        self.dodge_roll = DodgeRoll(poe_bot=poe_bot)
+
+        super().__init__(poe_bot)
+        self.auto_flasks = AutoFlasks(poe_bot=poe_bot)
+
+
 
 COMBAT_BUILDS = {
+  'DonColdMonk': DonColdMonkBuild,
   'ColdDotElementalist':ColdDotElementalist,
   'LightningArrowLightningWarp':LightningArrowLightningWarp,
   "DetonateDeadMapper": DetonateDeadMapper,
