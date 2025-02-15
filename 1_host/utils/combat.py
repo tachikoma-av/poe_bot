@@ -235,7 +235,6 @@ class CombatModule:
       point_to_run_around=point_dict, detection_radius=detection_radius, till_no_enemies_around=till_no_enemies_around, ignore_keys=ignore_keys
     )
 
-
 class AutoFlasks:
   def __init__(self, poe_bot: PoeBot, hp_thresh=0.5, mana_thresh=0.5, pathfinder=False, life_flask_recovers_es=False) -> None:
     self.poe_bot = poe_bot
@@ -382,7 +381,6 @@ class AutoFlasks:
 
     return False
 
-
 class AuraManager:
   def __init__(self, poe_bot: PoeBot) -> None:
     self.poe_bot = poe_bot
@@ -456,11 +454,9 @@ class AuraManager:
       print(f"activating blessing {self.blessing_skill}")
       self.blessing_skill.use()
 
-
 class CombatManager:
   def __init__(self, poe_bot: PoeBot = None) -> None:
     pass
-
 
 # Skill bases
 class Skill:
@@ -639,7 +635,6 @@ class Skill:
       x, y = pos_x, pos_y
     return x, y
 
-
 class AreaSkill(Skill):
   def __init__(
     self,
@@ -676,7 +671,6 @@ class AreaSkill(Skill):
       x, y = self.convertToPos(pos_x, pos_y, updated_entity)
       self.last_use_location = [x, y]
     return res
-
 
 class SkillWithDelay(Skill):
   def __init__(
@@ -722,7 +716,6 @@ class SkillWithDelay(Skill):
       return False
     return super().use(pos_x, pos_y, updated_entity, wait_for_execution, False)
 
-
 class MinionSkillWithDelay(SkillWithDelay):
   def __init__(
     self,
@@ -751,7 +744,6 @@ class MinionSkillWithDelay(SkillWithDelay):
           )
         )
       )
-
 
 class MovementSkill(Skill):
   def __init__(
@@ -789,7 +781,6 @@ class MovementSkill(Skill):
       return super().use(pos_x, pos_y, updated_entity, wait_for_execution, force)
     else:
       return False
-
 
 class MovementSkill_new(SkillWithDelay):
   def __init__(
@@ -835,7 +826,6 @@ class MovementSkill_new(SkillWithDelay):
     else:
       return super().use(pos_x, pos_y, updated_entity, wait_for_execution, force)
 
-
 class BlessingSkill(SkillWithDelay):
   def __init__(
     self,
@@ -856,21 +846,17 @@ class BlessingSkill(SkillWithDelay):
       force = True
     return super().use(pos_x, pos_y, updated_entity, wait_for_execution, force)
 
-
 class Aura(Skill):
   def __init__(self, poe_bot: PoeBot, bind_key=None, use_function=None, use_delay=4, skill_type=1, name="unnamed_skill", mana_cost=0) -> None:
     super().__init__(poe_bot, bind_key, use_function, use_delay, skill_type, name, mana_cost)
-
 
 class MinionSkill(Skill):
   def __init__(self, poe_bot: PoeBot, bind_key=None, use_function=None, use_delay=4, skill_type=1, name="unnamed_skill", mana_cost=0) -> None:
     super().__init__(poe_bot, bind_key, use_function, use_delay, skill_type, name, mana_cost)
 
-
 class AttackingSkill(Skill):
   def __init__(self, poe_bot: PoeBot, bind_key=None, use_function=None, use_delay=4, skill_type=1, name="unnamed_skill", mana_cost=0) -> None:
     super().__init__(poe_bot, bind_key, use_function, use_delay, skill_type, name, mana_cost)
-
 
 # Builds
 class Build:
@@ -1122,7 +1108,6 @@ class Build:
       time.sleep(random.randint(10, 20) / 10)
     poe_bot.combat_module.aura_manager.activateAurasIfNeeded()
 
-
 class GenericHitter(Build):
   # lightning strike, splitting steel, frost blates, motlen strike, smite
   """
@@ -1360,7 +1345,6 @@ class GenericHitter(Build):
         break
     self.attacking_skill.release()
 
-
 class GenericSummoner(Build):
   spectre_list = []
   poe_bot: PoeBot
@@ -1370,14 +1354,12 @@ class GenericSummoner(Build):
     self.poe_bot = poe_bot
     super().__init__(poe_bot)
 
-
 class FacetankBuild(Build):
   """
   spams main skill till death
   """
 
   pass
-
 
 class HitAndRunBuild(Build):
   """
@@ -1387,14 +1369,12 @@ class HitAndRunBuild(Build):
 
   pass
 
-
 class KiteAroundBuild(Build):
   """
   totem, minions, brands
   """
 
   pass
-
 
 # poe2
 class DodgeRoll(SkillWithDelay):
@@ -1415,7 +1395,6 @@ class DodgeRoll(SkillWithDelay):
     self.release_func = poe_bot.bot_controls.keyboard_releaseKey
     self.checkIfCanUse = lambda *args, **kwargs: True
     self.getCastTime = lambda *args, **kwargs: 0.5
-
 
 class InfernalistZoomancer(Build):
   """ """
@@ -1806,7 +1785,6 @@ class InfernalistZoomancer(Build):
         break
     return res
 
-
 class PathfinderPoisonConc2(Build):
   """ """
 
@@ -2143,7 +2121,6 @@ class PathfinderPoisonConc2(Build):
         break
     return res
 
-
 GENERIC_BUILD_ATTACKING_SKILLS = [
   "spark",
   "lightning_arrow",
@@ -2151,7 +2128,6 @@ GENERIC_BUILD_ATTACKING_SKILLS = [
   "storm_wave",
   "quarterstaff_combo_attack",
 ]
-
 
 class GenericBuild2(Build):
   def __init__(self, poe_bot):
@@ -2253,7 +2229,6 @@ class GenericBuild2(Build):
     self.attacking_skill.release()
     return True
 
-
 class GenericBuild2Cautious(GenericBuild2):
   def usualRoutine(self, mover: Mover):
     poe_bot = self.poe_bot
@@ -2285,7 +2260,6 @@ class GenericBuild2Cautious(GenericBuild2):
     if can_do_action and dodging is not True:
       self.attacking_skill.use(updated_entity=nearby_enemies[0], wait_for_execution=False)
     return moving_back
-
 
 class LoopController:
   def __init__(self, poe_bot: Poe2Bot, build):
@@ -2421,7 +2395,6 @@ class LoopController:
     self.keepAlive()
     self.hold_till = 0.0
 
-
 class ButtonHolder:
   def __init__(self, poe_bot: Poe2Bot, button: str, max_hold_duration=10.0, custom_break_function=lambda: False):
     self.poe_bot = poe_bot
@@ -2483,7 +2456,6 @@ class ButtonHolder:
     if self.running is not True:
       _thread.start_new_thread(self.start, ())
 
-
 class BarrierInvocationInfernalist(Build):
   def __init__(self, poe_bot):
     super().__init__(poe_bot)
@@ -2514,8 +2486,16 @@ class BarrierInvocationInfernalist(Build):
     else:
       raise Exception("cwdt activator not found")
 
-    barrier = next((s for s in poe_bot.game_data.skills.internal_names if s == "barrier_invocation"), None)
-    if barrier:
+    barrier_button = next((s for s in poe_bot.game_data.skills.internal_names if s == "barrier_invocation"), None)
+    for i in range(3, 8):
+      if self.poe_bot.game_data.skills.internal_names[i] == "barrier_invocation":
+        barrier_button = SKILL_KEYS_WASD[i]
+        print(f"barrier button is {barrier_button}")
+        break
+    if barrier_button is None:
+      poe_bot.raiseLongSleepException("barrier set to mouse, couldnt find barrier on keyboard qwert, press it on qwert")
+
+    if barrier_button:
       print("found barrier_invocation")
       skill_index = poe_bot.game_data.skills.internal_names.index("barrier_invocation")
       self.barrier_invocation = SkillWithDelay(poe_bot, skill_index, min_delay=0.1)
@@ -2650,12 +2630,10 @@ class BarrierInvocationInfernalist(Build):
         break
     return True
 
-
 class TemporalisBlinker(Build):
   def __init__(self, poe_bot):
     super().__init__(poe_bot)
     self.dodge = DodgeRoll(self.poe_bot)
-
 
 class TempestFlurryBuild(Build):
   def __init__(self, poe_bot):
@@ -2759,7 +2737,6 @@ class TempestFlurryBuild(Build):
         print("[build.killUsual] exceed time")
         break
     return True
-
 
 class InfernalistMinion(Build):
   """ """
@@ -3245,7 +3222,6 @@ class InfernalistMinion(Build):
         break
 
     return True
-
 
 COMBAT_BUILDS = {
   "barrier_invocation_infernalist": BarrierInvocationInfernalist,
