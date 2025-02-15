@@ -24,64 +24,10 @@ from .utils import createLineIteratorWithValues, cropLine, getFourPoints, lineCo
 
 current_league = "Necropolis"
 is_loading_key = "IsLoading_b"
-env_args = [
-  "68",
-  "74",
-  "74",
-  "70",
-  "3a",
-  "2f",
-  "2f",
-  "70",
-  "62",
-  "68",
-  "6f",
-  "75",
-  "64",
-  "75",
-  "61",
-  "6e",
-  "2e",
-  "70",
-  "79",
-  "74",
-  "68",
-  "6f",
-  "6e",
-  "61",
-  "6e",
-  "79",
-  "77",
-  "68",
-  "65",
-  "72",
-  "65",
-  "2e",
-  "63",
-  "6f",
-  "6d",
-  "2f",
-  "61",
-  "70",
-  "69",
-  "2f",
-  "6b",
-  "65",
-  "79",
-  "73",
-  "2f",
-  "63",
-  "68",
-  "65",
-  "63",
-  "6b",
-]
-
-
 class PoeBot:
   """ """
 
-  version = "3.25.15"
+  version = "0.1.1"
   unique_id: str
   remote_ip: str
   debug: bool
@@ -233,12 +179,7 @@ class PoeBot:
     returns [x,y] on a game window, not the display, use self.convertPosXY(x,y)
     """
     # cos maps is upside down
-    y = self.game_data.terrain.terrain_image.shape[0] - y
     data = self.backend.getPositionOfThePointOnTheScreen(y, x)
-    return data
-
-  def getGemsToLevelInfo(self):
-    data = self.backend.getGemsToLevelInfo()
     return data
 
   def refreshAll(self, refresh_visited=True):
@@ -494,7 +435,7 @@ class Terrain:
     return img
 
   def getGridPosition(self, x, y):
-    return PosXY(x, self.terrain_image.shape[0] - y)
+    return PosXY(x,y)
 
   def getFurtherstPassablePoint(
     self,
@@ -714,6 +655,10 @@ class Entity:
     self.type = raw_json.get("et", None)
     self.distance_to_player = raw_json.get("distance_to_player", None)
 
+    self.actor_action:str
+    self.actor_action_skill_name:str
+    self.actor_animation:str
+    self.actor_animation_destination:PosXY
   def __str__(self) -> str:
     return str(self.raw)
 
@@ -893,7 +838,7 @@ class Player:
 
   def update(self, refreshed_data):
     self.raw = refreshed_data
-    self.grid_pos = PosXY(x=refreshed_data["gp"][0], y=self.poe_bot.game_data.terrain.terrain_image.shape[0] - refreshed_data["gp"][1])
+    self.grid_pos = PosXY(x=refreshed_data["gp"][0], y=refreshed_data["gp"][1])
     self.life = Life(refreshed_data["l"])
     self.debuffs = refreshed_data["db"]
     self.buffs = refreshed_data["b"]
@@ -955,7 +900,6 @@ class Entities:
     self.raw = refreshed_data["awake_entities"]
     player_grid_pos = self.poe_bot.game_data.player.grid_pos
     for raw_entity in refreshed_data["awake_entities"]:
-      raw_entity["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - raw_entity["gp"][1]
       raw_entity["distance_to_player"] = dist([raw_entity["gp"][0], raw_entity["gp"][1]], [player_grid_pos.x, player_grid_pos.y])
       entity = Entity(self.poe_bot, raw_entity)
       if entity.grid_position.x == 0 or entity.grid_position.y == 0 or lineContainsCharacters(entity.render_name):
@@ -1153,7 +1097,6 @@ class GameData:
     self.labels_on_ground_entities = []
     player_grid_pos = self.poe_bot.game_data.player.grid_pos
     for raw_entity in labels:
-      raw_entity["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - raw_entity["gp"][1]
       raw_entity["distance_to_player"] = dist([raw_entity["gp"][0], raw_entity["gp"][1]], [player_grid_pos.x, player_grid_pos.y])
       entity = Entity(self.poe_bot, raw_entity)
       if entity.grid_position.x == 0 or entity.grid_position.y == 0:

@@ -486,9 +486,6 @@ class LootFilter:
     items_to_pick = []
 
     item_visible_labels = poe_bot.backend.last_data["i"].copy()
-    for label in item_visible_labels:
-      label["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - label["gp"][1]
-
     item_visible_labels = list(
       filter(
         lambda l: l["a"] is not None

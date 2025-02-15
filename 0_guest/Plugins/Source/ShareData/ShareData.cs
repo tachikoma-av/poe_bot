@@ -188,7 +188,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         var Rows = _terrainMetadata.NumRows;
         var Cols = _terrainMetadata.NumCols;
 
-        for (var r = Rows * MapCellSizeI - 1; r >= 0; --r)
+        // for (var r = Rows * MapCellSizeI - 1; r >= 0; --r)
+        for (var r = 0; r < Rows * MapCellSizeI; r++)
         {
             for (var c = 0; c < Cols * MapCellSizeI; c++)
             {
@@ -282,17 +283,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             try
             {
                 var obj_life = obj.GetComponent<Life>();
-                // Life_generated life_component = new Life_generated();
-                // life_component.Health = new Health_generated();
-                // life_component.Mana = new Mana_generated();
-
-                // life_component.Health.Total = obj_life.MaxHP;
-                // life_component.Health.Current = obj_life.CurHP;
-
-                // life_component.Mana.Total = obj_life.MaxMana;
-                // life_component.Mana.Current = obj_life.CurMana;
-
-                // entity.life = life_component;
                 entity.life_component = new List<int> { 
                     obj_life.MaxHP,
                     obj_life.CurHP,
