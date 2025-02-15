@@ -9,6 +9,7 @@ if typing.TYPE_CHECKING:
 import random
 import time
 from math import dist
+from abc import abstractmethod
 
 from .components import PoeBotComponent
 
@@ -16,8 +17,10 @@ from .components import PoeBotComponent
 class Encounter(PoeBotComponent):
   def __init__(self, poe_bot: PoeBot) -> None:
     super().__init__(poe_bot)
+    # encounter start entity
 
-  def do(self):
+  @abstractmethod
+  def doEncounter(self):
     self.poe_bot.raiseLongSleepException("encounter.do is not defined")
 
 
@@ -673,7 +676,7 @@ class HarbringerEncounter(Encounter):
     super().__init__(poe_bot)
     self.encounter_entity = harbringer_entity
 
-  def do(self):
+  def doEncounter(self):
     print(f"[HarbringerEncounter.do] nearby {self.encounter_entity} call at {time.time()}")
     harbringer_id = self.encounter_entity.id
     while True:
