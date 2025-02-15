@@ -709,19 +709,7 @@ class Mover:
       )
     else:
       raise Exception("screen pos move for wasd is not supported atm")
-    # elif screen_pos_x != None and screen_pos_y != None:
-    #   print(f'screen pos cp {self.poe_bot.game_window.center_point}')
-    #   angle = angleOfLine(
-    #     self.poe_bot.game_window.center_point,
-    #     [screen_pos_x, screen_pos_y],
-    #   ) - 45
-    #   if angle < 0:
-    #     angle += 360
-
-    # we have an angle to move
-
     angle_mult = angle // 45
-
     angles = []
     angle_weights = [1, 1]
     angles.append(int(angle_mult * 45))
@@ -779,7 +767,13 @@ class Mover:
 
     for action in queue:
       action()
-    return (0, 0)  # TODO ????????
+    
+    nearest_angle_screen = nearest_angle - 45
+    if nearest_angle_screen < 0:
+      nearest_angle_screen += 360
+
+    expected_end_pos = pointOnCircleByAngleAndLength(nearest_angle_screen, distance, self.poe_bot.game_window.center_point)
+    return expected_end_pos
 
   def stopMoving(self):
     if self.move_type == "mouse":
