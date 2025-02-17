@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -22,7 +22,7 @@ namespace ShareData;
 public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 {
     private static int update_frequency_per_sec = 20;
-    private static List<string> data_cache = new List<string>(["", ""]);
+    private static List<GetDataObject> data_cache = new List<GetDataObject>();
     private static readonly object dataTempLock = new object();  // Lock object for thread-safety
 
     public override bool Initialise()
@@ -56,11 +56,11 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         while (true)
         {
             // Get new data and serialize it
-            string data;
+            GetDataObject data;
             try
             {
                 DebugWindow.LogMsg($"update cache");
-                data = SerializeData(getData("partial"));
+                data = getData("partial");
             }
             catch (Exception ex)
             {
@@ -279,10 +279,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             entity.path = obj.Path;
             entity.grid_position = new List<int> { (int)obj.GridPos.X, (int)obj.GridPos.Y };
             entity.world_position = new List<int> { (int)obj.BoundsCenterPos.X,(int)obj.BoundsCenterPos.Y,(int)obj.BoundsCenterPos.Z };
-            // life component if it has it
-            try
-            {
-                var obj_life = obj.GetComponent<Life>();
+            var obj_life = obj.GetComponent<Life>();
+            if (obj_life != null){
                 entity.life_component = new List<int> { 
                     obj_life.MaxHP,
                     obj_life.CurHP,
@@ -295,10 +293,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                     obj_life.EnergyShield.Reserved,
                 };
             }
-            catch (Exception e)
-            {
-                
-            }
+
 
             // entity_type
             entity.entity_type = serializeEntityType(obj.Type.ToString());
@@ -318,26 +313,24 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 
             } 
 
-            // loc on screen
-            try {
-                int loc_on_screen_x = 0;
-                int loc_on_screen_y = 0;
-
-                if ((int)obj.BoundsCenterPos.X != 0){
-                    var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(obj.BoundsCenterPos);
-                    loc_on_screen_x = (int)loc_on_screen.X;
-                    loc_on_screen_y = (int)loc_on_screen.Y;
-                } else if (entity.entity_type == "wi") {
-                    continue;
-                }
-
-                entity.location_on_screen = new List<int> { loc_on_screen_x, loc_on_screen_y };
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"getAwakeEntities -> {e}");
-                
-            }
+            // // TODO? update those positions right before sending the data
+            // // loc on screen
+            // try {
+            //     int loc_on_screen_x = 0;
+            //     int loc_on_screen_y = 0;
+            //     if ((int)obj.BoundsCenterPos.X != 0){
+            //         var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(obj.BoundsCenterPos);
+            //         loc_on_screen_x = (int)loc_on_screen.X;
+            //         loc_on_screen_y = (int)loc_on_screen.Y;
+            //     } else if (entity.entity_type == "wi") {
+            //         continue;
+            //     }
+            //     entity.location_on_screen = new List<int> { loc_on_screen_x, loc_on_screen_y };
+            // }
+            // catch (Exception e)
+            // {
+            //     DebugWindow.LogMsg($"getAwakeEntities -> {e}");
+            // }
 
 
 
@@ -443,13 +436,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 entity.is_targetable = targetable_comp.isTargetable ? 1 : 0;
                 entity.is_targeted = targetable_comp.isTargeted ? 1 : 0;
             }
-            // try {
-            //     entity.t = obj.IsTargetable ? 1 : 0;
-            // }
-            // catch (Exception e)
-            // {
-            //     DebugWindow.LogMsg($"Targetable -> {e}");
-            // }
 
 
             // // AnimatedPropertiesMetadata
@@ -462,6 +448,31 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         }
         return awake_entities;
     }
+
+    public void updateScreenLocForEntities(GetDataObject get_data_object){        
+        foreach (var entity in get_data_object.awake_entities)
+        {
+            try {
+                int loc_on_screen_x = 0;
+                int loc_on_screen_y = 0;
+
+                if (entity.world_position[0] != 0){
+                    var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
+                    loc_on_screen_x = (int)loc_on_screen.X;
+                    loc_on_screen_y = (int)loc_on_screen.Y;
+                } else if (entity.entity_type == "wi") {
+                    continue;
+                }
+
+                entity.location_on_screen = new List<int> { loc_on_screen_x, loc_on_screen_y };
+            }
+            catch (Exception e)
+            {
+                DebugWindow.LogMsg($"updateScreenLocForEntities -> {e}");
+            }
+        }
+    }
+
     public List<string> TraverseElementsBFS(Element root)
     {
         var result = new List<string>();
@@ -1746,12 +1757,11 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             {
                 case "/getData":
                     string requestType = ExtractQueryParameter(query, "type", "partial");
-
+                    GetDataObject data;
                     if (requestType == "full"){
-                        return SerializeData(getData(requestType));
+                        data = getData(requestType);
                     } else {
                         // Thread-safe access to the last item in the list
-                        string data;
                         lock (dataTempLock)
                         {
                             data = data_cache[data_cache.Count - 1];
@@ -1759,12 +1769,9 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                             // {
                             // }
                         }
-                        return data;
-
                     }
-
-
-                    // return SerializeData(getData(requestType));
+                    updateScreenLocForEntities(data);
+                    return SerializeData(data);
 
                 case "/getLocationOnScreen":
                     int x = int.Parse(ExtractQueryParameter(query, "x"));
