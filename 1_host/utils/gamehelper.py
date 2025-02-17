@@ -170,7 +170,7 @@ class PoeBot:
           raise Exception("area is loading on partial request")
         else:
           time.sleep(0.1)
-        print(f"area is loading {i}")
+        print(f"[PoeBot.getData] area is loading {i}")
     return refreshed_data
 
   def getPositionOfThePointOnTheScreen(self, y, x):
@@ -182,7 +182,6 @@ class PoeBot:
     y = self.game_data.terrain.terrain_image.shape[0] - y # invert Y axis
     data = self.backend.getPositionOfThePointOnTheScreen(y, x)
     return data
-
   def refreshAll(self, refresh_visited=True):
     print(f"[poebot] #refreshAll call at {time.time()}")
     refreshed_data = self.getData(request_type="full")
@@ -195,7 +194,6 @@ class PoeBot:
     # below to remove
     self.area_raw_name = refreshed_data["area_raw_name"]
     self.refreshInstanceData(refreshed_data=refreshed_data)
-
   def refreshInstanceData(self, refreshed_data=None, force=False, reset_timer=False, raise_if_loading=False):
     if self.debug is True:
       print(f"#PoeBot.refreshInstanceData call {time.time()}")
@@ -207,7 +205,6 @@ class PoeBot:
         if self.debug is True:
           print(f"too fast, sleep for {wait_till_next_action}")
         time.sleep(wait_till_next_action)
-
     if refreshed_data is None:
       refreshed_data = self.getData("partial")
       # disconnect?
@@ -220,9 +217,7 @@ class PoeBot:
           self.raiseLongSleepException("self.on_disconnect_function is not specified")
 
       self.game_data.update(refreshed_data=refreshed_data)
-
     self.last_action_time = time.time()
-
     if refreshed_data["area_raw_name"] != self.area_raw_name:
       self.bot_controls.releaseAll()
       raise Exception("Area changed but refreshInstanceData was called before refreshAll")
@@ -408,7 +403,7 @@ class Terrain:
       area = radius
     else:
       area = self.poe_bot.discovery_radius
-    # cv2.circle(self.terrain.visited_area, (int(self.player.grid_pos.x), int(self.player.grid_pos.y)), self.poe_bot.discovery_radius, 127, -1)
+    # cv2.circle(self.terrain.visited_area, (int(self.player.grid_pos.x), int(self.player.grid_pos.y)), self.poe_bot.discovery_radius, 127, -1); return
     visited_lower_x = pos_x - area
     if visited_lower_x < 0:
       visited_lower_x = 0
@@ -426,10 +421,8 @@ class Terrain:
     self.terrain_image = img
 
     # 1 passable, 0 - non passable
-    # ret, self.passable = cv2.threshold(cv2.convertScaleAbs(self.terrain_image),52,1,cv2.THRESH_BINARY)
-    # ret, self.passable = cv2.threshold(cv2.convertScaleAbs(self.terrain_image),50,1,cv2.THRESH_BINARY) #?
     ret, self.passable = cv2.threshold(cv2.convertScaleAbs(self.terrain_image), 49, 1, cv2.THRESH_BINARY)  # ?
-
+    # self.passable = (cv2.convertScaleAbs(self.terrain_image) != 49).astype(int) # != is faster than >=
     if refresh_visited is True:
       self.resetVisitedArea()
 
@@ -615,6 +608,26 @@ class Terrain:
       print(f"#passableAreaDiscoveredForPercent return {time.time()}")
     return discover_percent
 
+class Animation:
+  def __init__(self):
+    # which action
+    self.actor_action:str
+    self.actor_action_skill_name:str
+    self.actor_animation:str
+
+    # which destination
+    self.actor_animation_destination:PosXY
+
+
+
+    # how much time there is before the damage will happen? how dangerous is the action's destination
+    # actor_animation_stage int?
+    self.actor_animation_animation_controller_stage: int
+    # actor_animation_progress %?
+    self.actor_animation_animation_controller_progress: float 
+    # time [start, end, current]
+    self.progress: list[float]
+
 
 class Entity:
   raw: dict
@@ -635,6 +648,8 @@ class Entity:
   render_name: str
   distance_to_player: float
   attack_value: int = None
+  animation:Animation
+
 
   def __init__(self, poe_bot: PoeBot, raw_json: dict) -> None:
     self.raw = raw_json
@@ -658,10 +673,6 @@ class Entity:
     self.type = raw_json.get("et", None)
     self.distance_to_player = raw_json.get("distance_to_player", None)
 
-    self.actor_action:str
-    self.actor_action_skill_name:str
-    self.actor_animation:str
-    self.actor_animation_destination:PosXY
   def __str__(self) -> str:
     return str(self.raw)
 
