@@ -396,7 +396,7 @@ class Terrain:
   poe_bot: PoeBot
   terrain_image: np.ndarray  # np array
   passable: np.ndarray  # nparray
-  currently_passable_area: np.ndarray
+  currently_passable_area: np.ndarray = None
   visited_passable_areas: np.ndarray
   visited_area: np.ndarray  # np array
 
@@ -556,6 +556,8 @@ class Terrain:
 
   def checkIfPointPassable(self, grid_pos_x, grid_pos_y, radius=10):
     poe_bot = self.poe_bot
+    if poe_bot.game_data.terrain.currently_passable_area == None:
+      self.getCurrentlyPassableArea()
     if radius != 0:
       currently_passable_area = poe_bot.game_data.terrain.currently_passable_area
       currently_passable_area_around_entity = currently_passable_area[
