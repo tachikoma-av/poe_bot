@@ -177,8 +177,8 @@ while True:
 
   id_to_follow = poe_bot.backend.getEntityIdByPlayerName(ign_to_follow)
   # check if party member to follow in diff loc and portal to that loc is somewhere around
-  if id_to_follow is None:
-    if poe_bot.game_data.invites_panel_visible is True:
+  if id_to_follow != 1:
+    if poe_bot.game_data.invites_panel_visible == True:
       print("teleporting already")
       continue
     if party_raw is None:

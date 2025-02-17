@@ -971,7 +971,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         return el;
     }
     public int? getEntityIdByPlayerName(string player_name){
-        int? player_id = null;
+        int? player_id = -1;
         foreach (var entity in GameController.EntityListWrapper.Entities){
             var entity_player_component = entity.GetComponent<Player>();
             if (entity_player_component != null){
