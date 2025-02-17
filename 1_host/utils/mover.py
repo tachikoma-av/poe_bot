@@ -757,4 +757,15 @@ DIRECTIONS_AND_KEYS = {
   315: ["DIK_A"],
 }
 
+DIRECTIONS_AND_KEYS_Y_AXIS_INVERTED = {
+  0: ["DIK_D", "DIK_S"],
+  45: ["DIK_D"],
+  90: ["DIK_W", "DIK_D"],
+  135: ["DIK_W"],
+  180: ["DIK_A", "DIK_W"],
+  225: ["DIK_A"],
+  270: ["DIK_S", "DIK_A"],
+  315: ["DIK_S"],
+}
+
 ALL_DIRECTIONS_ANGLES = list(DIRECTIONS_AND_KEYS.keys()) + [360]

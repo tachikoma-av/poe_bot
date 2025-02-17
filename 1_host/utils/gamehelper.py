@@ -179,6 +179,7 @@ class PoeBot:
     returns [x,y] on a game window, not the display, use self.convertPosXY(x,y)
     """
     # cos maps is upside down
+    y = self.game_data.terrain.terrain_image.shape[0] - y # invert Y axis
     data = self.backend.getPositionOfThePointOnTheScreen(y, x)
     return data
 
@@ -435,7 +436,7 @@ class Terrain:
     return img
 
   def getGridPosition(self, x, y):
-    return PosXY(x,y)
+    return PosXY(x, self.terrain_image.shape[0] - y)
 
   def getFurtherstPassablePoint(
     self,
@@ -838,7 +839,7 @@ class Player:
 
   def update(self, refreshed_data):
     self.raw = refreshed_data
-    self.grid_pos = PosXY(x=refreshed_data["gp"][0], y=refreshed_data["gp"][1])
+    self.grid_pos = PosXY(x=refreshed_data["gp"][0], y=self.poe_bot.game_data.terrain.terrain_image.shape[0] - refreshed_data["gp"][1]) # invert Y axis
     self.life = Life(refreshed_data["l"])
     self.debuffs = refreshed_data["db"]
     self.buffs = refreshed_data["b"]
@@ -900,6 +901,7 @@ class Entities:
     self.raw = refreshed_data["awake_entities"]
     player_grid_pos = self.poe_bot.game_data.player.grid_pos
     for raw_entity in refreshed_data["awake_entities"]:
+      raw_entity["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - raw_entity["gp"][1] # invert Y axis
       raw_entity["distance_to_player"] = dist([raw_entity["gp"][0], raw_entity["gp"][1]], [player_grid_pos.x, player_grid_pos.y])
       entity = Entity(self.poe_bot, raw_entity)
       if entity.grid_position.x == 0 or entity.grid_position.y == 0 or lineContainsCharacters(entity.render_name):
@@ -1084,6 +1086,7 @@ class GameData:
     self.labels_on_ground_entities = []
     player_grid_pos = self.poe_bot.game_data.player.grid_pos
     for raw_entity in labels:
+      raw_entity["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - raw_entity["gp"][1] # invert Y axis
       raw_entity["distance_to_player"] = dist([raw_entity["gp"][0], raw_entity["gp"][1]], [player_grid_pos.x, player_grid_pos.y])
       entity = Entity(self.poe_bot, raw_entity)
       if entity.grid_position.x == 0 or entity.grid_position.y == 0:

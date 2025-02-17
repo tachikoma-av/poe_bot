@@ -188,8 +188,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         var Rows = _terrainMetadata.NumRows;
         var Cols = _terrainMetadata.NumCols;
 
-        // for (var r = Rows * MapCellSizeI - 1; r >= 0; --r)
-        for (var r = 0; r < Rows * MapCellSizeI; r++)
+        // for (var r = 0; r < Rows * MapCellSizeI; r++)
+        for (var r = Rows * MapCellSizeI - 1; r >= 0; --r)
         {
             for (var c = 0; c < Cols * MapCellSizeI; c++)
             {
