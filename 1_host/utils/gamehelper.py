@@ -993,18 +993,6 @@ class Skills:
     if refreshed_data["tu"]:
       self.total_uses = refreshed_data["tu"]
 
-
-class CompletedAtlasMaps:
-  def __init__(self, poe_bot: PoeBot) -> None:
-    self.poe_bot = poe_bot
-
-  def getCompletedMaps(self):
-    self.completed_maps_raw = self.poe_bot.backend.atlasProgress()
-    # self.completed_maps = list(map(lambda m: f'{m} Map' if m not in ATLAS_COMPLETED_MAPS_LONG else {m},self.completed_maps_raw))
-    self.completed_maps = list(map(lambda m: f"{m} Map", self.completed_maps_raw))
-    return self.completed_maps
-
-
 class QuestFlags:
   def __init__(self, poe_bot: PoeBot) -> None:
     self.poe_bot = poe_bot
@@ -1047,7 +1035,6 @@ class GameData:
     self.entities = Entities(self.poe_bot)
     self.player = Player(self.poe_bot)
     self.skills = Skills(self.poe_bot)
-    self.completed_atlas_maps = CompletedAtlasMaps(self.poe_bot)
     self.quest_states = QuestFlags(self.poe_bot)
     self.map_info = MapInfo(self.poe_bot)
     self.minimap_icons = MinimapIcons(self.poe_bot)

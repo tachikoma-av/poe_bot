@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 public class Posx1x2y1y2
 {
@@ -325,15 +325,4 @@ public class GridPosition_generated
     public int X { get; set; }
     public int Y { get; set; }
 }
-public class LocationOnScreen_generated
-{
-    public int X { get; set; }
-    public int Y { get; set; }
-}
 
-public class GemToLevelInfo
-{
-    public LocationOnScreen_generated center_location { get; set; }
-    public int width { get; set; }
-    public int height { get; set; }
-}

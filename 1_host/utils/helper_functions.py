@@ -293,52 +293,6 @@ class HelperFunctions:
     self.logIn()
     raise Exception("logged in, success")
 
-  def clickNecropolisTabletIfPresentedNearEntity(self, entity: Entity):
-    poe_bot = self.poe_bot
-    visible_labels = poe_bot.backend.getVisibleLabels()
-    necropolis_tablets = list(
-      filter(lambda e: e.path == "Metadata/Terrain/Leagues/Necropolis/Objects/NecropolisCorpseMarker", poe_bot.game_data.entities.all_entities)
-    )
-    necropolis_tablet_to_click = None
-    for necropolis_tablet in necropolis_tablets:
-      tablet_distance = dist((necropolis_tablet.grid_position.x, necropolis_tablet.grid_position.y), (entity.grid_position.x, entity.grid_position.y))
-      if tablet_distance < 20:
-        print(f"tablet_distance < 20 between {necropolis_tablet.raw} and {entity.raw}")
-        necropolis_tablet_to_click = necropolis_tablet
-        break
-    if necropolis_tablet_to_click:
-      print(f"gonna click {necropolis_tablet_to_click.raw}")
-      necropolis_tablet_visible_label = next((l for l in visible_labels if l["id"] == necropolis_tablet_to_click.id), None)
-      can_click_necropolis_tablet = True
-      if necropolis_tablet_visible_label is None:
-        print(f"bug? no visible labels for necropolis table {necropolis_tablet_to_click.raw} visible_labels: {visible_labels}")
-        can_click_necropolis_tablet = False
-      click_necropolis_tablet_iter = 0
-      while can_click_necropolis_tablet:
-        click_necropolis_tablet_iter += 1
-        if click_necropolis_tablet_iter % 7 == 0:
-          poe_bot.refreshInstanceData(reset_timer=True)
-        print(f"click_necropolis_tablet_iter {click_necropolis_tablet_iter}")
-        if click_necropolis_tablet_iter > 50:
-          poe_bot.helper_functions.dumpError("necropolis_table_on_loot_f_cv2img_visiblelabels", [poe_bot.getImage(), visible_labels])
-          poe_bot.on_stuck_function()
-          # poe_bot.raiseLongSleepException('couldnt click on necropolis tablet for 50 iterations')
-        coords_to_click = (
-          int((necropolis_tablet_visible_label["p_o_s"]["y1"] + necropolis_tablet_visible_label["p_o_s"]["y2"]) / 2),
-          int((necropolis_tablet_visible_label["p_o_s"]["x1"] + necropolis_tablet_visible_label["p_o_s"]["x2"]) / 2),
-        )
-        pos_x, pos_y = poe_bot.convertPosXY(coords_to_click[1], coords_to_click[0])
-        print(f"#click_necropolis_tablet_iter set mouse at {pos_x, pos_y} at {time.time()}")
-        poe_bot.bot_controls.mouse.setPosSmooth(pos_x, pos_y, wait_till_executed=False)
-        print(f"click_necropolis_tablet_iter click mouse at {pos_x, pos_y} at {time.time()}")
-        poe_bot.bot_controls.mouse.click()
-
-        visible_labels = poe_bot.backend.getVisibleLabels()
-        necropolis_tablet_visible_label = next((l for l in visible_labels if l["id"] == necropolis_tablet_to_click.id), None)
-        if necropolis_tablet_visible_label is None:
-          print(f"necropolis_tablet_to_click tablet label disappeared {necropolis_tablet_to_click.raw}")
-          break
-
   def waitForPortalNearby(self, wait_for_seconds=3, distance=25):
     poe_bot = self.poe_bot
     start_time = time.time()

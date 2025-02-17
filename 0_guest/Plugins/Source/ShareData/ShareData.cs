@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -1664,19 +1664,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         }
         return preloaded_files_arr;
     }
-    public List<GemToLevelInfo> getGemsToLevelInfo(){
-        List<GemToLevelInfo> gems_to_level = new List<GemToLevelInfo>();
-        // foreach (var gem in GameController.IngameState.IngameUi.GemLvlUpPanel.GemsToLvlUp){
-        //     GemToLevelInfo gem_instance = new GemToLevelInfo();
-        //     gem_instance.center_location = new LocationOnScreen_generated();
-        //     gem_instance.center_location.X = (int)gem.Center.X;
-        //     gem_instance.center_location.Y = (int)gem.Center.Y;
-        //     gem_instance.height = (int)gem.Height;
-        //     gem_instance.width = (int)gem.Width;
-        //     gems_to_level.Add(gem_instance);
-        // } 
-        return gems_to_level;
-    }
 
     public GetDataObject getData(string type){
         GetDataObject response = new GetDataObject();
@@ -1802,9 +1789,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
                 case "/getOpenedStashInfo":
                     return SerializeData(getStashInfo());
-
-                case "/gemsToLevel":
-                    return SerializeData(getGemsToLevelInfo());
 
                 case "/getVisibleLabelOnGroundEntities":
                     return SerializeData(getVisibleLabelOnGroundEntities());
