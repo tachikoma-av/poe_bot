@@ -867,7 +867,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             var dialog_el = GameController.IngameState.IngameUi.NpcDialog.Children[0];
         } else {
             var reward_ui = getNpcRewardUi();
-            if (reward_ui.visible != 0){
+            if (reward_ui.is_visible != 0){
                 el.screen_zone = reward_ui.screen_zone;
                 el.reward_choices = reward_ui.choices;
             } else {
@@ -891,8 +891,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     public NpcRewardUi_c getNpcRewardUi(){
         NpcRewardUi_c el = new NpcRewardUi_c();
         el.choices = new List<InventoryObjectCustom_c>();
-        el.visible = GameController.IngameState.IngameUi.QuestRewardWindow.IsVisible ? 1 : 0;
-        if (el.visible != 0){
+        el.is_visible = GameController.IngameState.IngameUi.QuestRewardWindow.IsVisible ? 1 : 0;
+        if (el.is_visible != 0){
             var el_rect = GameController.IngameState.IngameUi.QuestRewardWindow.GetClientRect(); // label_element_rect
             el.screen_zone = new List<int> {
                 (int)el_rect.X, 
@@ -1120,7 +1120,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             visible_label.id = (int)label.ItemOnGround.Id;
             
             // grid position
-            visible_label.greed_position = new List<int> {
+            visible_label.grid_position = new List<int> {
                 (int)label.ItemOnGround.GridPos.X,
                 (int)label.ItemOnGround.GridPos.Y
             };
@@ -1601,13 +1601,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                     try {
                         var item_info = items_placed_in_map_device_parent.Children[i];
                         item = convertItem(item_info.Entity);
-                        var item_rect = item_info.GetClientRect();
-                        item.screen_zone = new List<int> {
-                            (int)item_rect.X, 
-                            (int)(item_rect.X + item_rect.Width), 
-                            (int)item_rect.Y, 
-                            (int)(item_rect.Y + item_rect.Height), 
-                        };
+                        item.screen_zone = getListOfIntFromElRect(item_info);
                     } catch (Exception ex){
                         // DebugWindow.LogMsg($"sharedata mapDeviceInfo for items -> {ex}");
                     }
