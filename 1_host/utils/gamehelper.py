@@ -549,7 +549,7 @@ class Terrain:
 
   def checkIfPointPassable(self, grid_pos_x, grid_pos_y, radius=10):
     poe_bot = self.poe_bot
-    if poe_bot.game_data.terrain.currently_passable_area == None:
+    if poe_bot.game_data.terrain.currently_passable_area is None:
       self.getCurrentlyPassableArea()
     if radius != 0:
       currently_passable_area = poe_bot.game_data.terrain.currently_passable_area
