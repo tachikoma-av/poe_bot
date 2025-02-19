@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 // to increase performance by reducing the size of json response
@@ -308,7 +308,7 @@ public class MinimapIcon_c
 
 public class Entity_c{
     [JsonProperty("ls")]
-    public List<int> location_on_screen { get; set; }
+    public int[] location_on_screen { get; set; }
     [JsonProperty("p")]
     public string path { get; set; }
     [JsonProperty("r")]
@@ -330,11 +330,11 @@ public class Entity_c{
     [JsonProperty("b")]
     public int bound_center_pos { get; set; }
     [JsonProperty("gp")]
-    public List<int> grid_position { get; set; }
+    public int[] grid_position { get; set; }
     [JsonProperty("wp")]
-    public List<int> world_position { get; set; }
+    public int[] world_position { get; set; }
     [JsonProperty("l")]
-    public List<int> life_component { get; set; }
+    public int[] life_component { get; set; }
     [JsonProperty("rn")]
     public string render_name { get; set; }
     [JsonProperty("et")]
@@ -366,7 +366,7 @@ public class ItemOnGroundLabel_c
     // [JsonProperty("id")]
     public int id; // id
     [JsonProperty("gp")]
-    public List<int> grid_position { get; set; } // grid position x ,y 
+    public int[] grid_position { get; set; } // grid position x ,y 
     [JsonProperty("sz")]
     public List<int> screen_zone { get; set; } // label screen zone x1 x2 y1 y2
     [JsonProperty("a")]

@@ -1,9 +1,13 @@
 # pip install -r requirements.txt
-matplotlib==3.10.0
-matplotlib-inline==0.1.7
 numpy==2.2.2
-pywin32==308
 opencv-python==4.11.0.86
 requests==2.32.3
 pyastar2d==1.0.6
+
+# no need on host?
+# pywin32==308
+
+# debug purpose only
+matplotlib==3.10.0
+matplotlib-inline==0.1.7
 jupyter==1.1.1

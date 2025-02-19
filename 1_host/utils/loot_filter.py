@@ -13,7 +13,7 @@ from math import dist
 import numpy as np
 
 from .components import PosXY
-from .constants import GOLD_COIN_ART, SHITTY_UNIQUES_ARTS, SMALL_RGB_ITEM_KEYS
+from .constants import GOLD_COIN_ART, SHITTY_UNIQUES_ARTS
 from .utils import alwaysTrueFunction, sortByHSV
 
 

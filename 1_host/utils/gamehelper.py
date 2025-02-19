@@ -84,7 +84,7 @@ class PoeBot:
     self._refresh_thread = None
     self._running = False
 
-    self.start_refresh_thread()
+    # self.start_refresh_thread()
 
   def __del__(self):
     self.stop_refresh_thread()
@@ -113,7 +113,7 @@ class PoeBot:
       except Exception as e:
         if e == "Area changed but refreshInstanceData was called before refreshAll":
           self.refreshAll()
-      time.sleep(1 / 20)
+      time.sleep(self.aps_limit)
 
   def update(self):
     pass
@@ -571,7 +571,7 @@ class Terrain:
     path_values = createLineIteratorWithValues(
       (self.poe_bot.game_data.player.grid_pos.x, self.poe_bot.game_data.player.grid_pos.y), (grid_pos_x, grid_pos_y), self.passable
     )
-    path_without_obstacles = bool(np.all(path_values[:, 2] > 0))
+    path_without_obstacles = bool(np.all(path_values[2:, 2] != 0)) #TODO test if ok "path_values[:, 2]" if affects too much
     return path_without_obstacles
 
   def isPointVisited(self, grid_pos_x, grid_pos_y):

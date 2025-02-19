@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -259,7 +259,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
     }
     public List<Entity_c> getAwakeEntities(){
         List<Entity_c> awake_entities = new List<Entity_c>();
-        foreach (var obj in GameController.EntityListWrapper.Entities)
+        foreach (var obj in GameController.EntityListWrapper.OnlyValidEntities)
         {
             // ignore invalid or temp objects
             if (obj.IsValid != true){
@@ -270,18 +270,19 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             if (obj.Type == EntityType.Effect){
                 continue;
             }
-
-            Entity_c entity = new Entity_c();
-            entity.id = (int)obj.Id;
-            if (entity.id < 0){
+            int e_id = (int)obj.Id;
+            if (e_id < 0){
                 continue;
             }
+
+            Entity_c entity = new Entity_c();
+            entity.id = e_id;
             entity.path = obj.Path;
-            entity.grid_position = new List<int> { (int)obj.GridPos.X, (int)obj.GridPos.Y };
-            entity.world_position = new List<int> { (int)obj.BoundsCenterPos.X,(int)obj.BoundsCenterPos.Y,(int)obj.BoundsCenterPos.Z };
+            entity.grid_position =  [(int)obj.GridPos.X, (int)obj.GridPos.Y];
+            entity.world_position = [(int)obj.BoundsCenterPos.X,(int)obj.BoundsCenterPos.Y,(int)obj.BoundsCenterPos.Z];
             var obj_life = obj.GetComponent<Life>();
             if (obj_life != null){
-                entity.life_component = new List<int> { 
+                entity.life_component = [
                     obj_life.MaxHP,
                     obj_life.CurHP,
                     obj_life.Health.Reserved,
@@ -291,46 +292,37 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                     obj_life.MaxES,
                     obj_life.CurES,
                     obj_life.EnergyShield.Reserved,
-                };
+                ];
             }
 
 
             // entity_type
             entity.entity_type = serializeEntityType(obj.Type.ToString());
+            // entity.entity_type = (int)obj.Type;
 
             // BoundsCenterPos
             // need for checking if item is collectable
-            try {
                 if ((int)obj.BoundsCenterPos.X != 0){
                     entity.bound_center_pos = 1;
                 } else {
                     entity.bound_center_pos = 0;
+            }
+            
+            // update only when needed
+            int loc_on_screen_x = 0;
+            int loc_on_screen_y = 0;
+            try {
+                if (obj.Type != EntityType.WorldItem && entity.world_position[0] != 0){
+                    var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
+                    loc_on_screen_x = (int)loc_on_screen.X;
+                    loc_on_screen_y = (int)loc_on_screen.Y;
                 }
             }
             catch (Exception e)
             {
-                DebugWindow.LogMsg($"getAwakeEntities BoundsCenterPos -> {e}");
-                
-            } 
-
-            // // TODO? update those positions right before sending the data
-            // // loc on screen
-            // try {
-            //     int loc_on_screen_x = 0;
-            //     int loc_on_screen_y = 0;
-            //     if ((int)obj.BoundsCenterPos.X != 0){
-            //         var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(obj.BoundsCenterPos);
-            //         loc_on_screen_x = (int)loc_on_screen.X;
-            //         loc_on_screen_y = (int)loc_on_screen.Y;
-            //     } else if (entity.entity_type == "wi") {
-            //         continue;
-            //     }
-            //     entity.location_on_screen = new List<int> { loc_on_screen_x, loc_on_screen_y };
-            // }
-            // catch (Exception e)
-            // {
-            //     DebugWindow.LogMsg($"getAwakeEntities -> {e}");
-            // }
+                DebugWindow.LogMsg($"updateScreenLocForEntities -> {e}");
+            }
+            entity.location_on_screen = [loc_on_screen_x, loc_on_screen_y];
 
 
 
@@ -338,39 +330,22 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             entity.render_name = obj.RenderName;
 
             // Rarity
-            try {
                 entity.rarity = obj.Rarity.ToString();
-
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"getAwakeEntities -> {e}");
-                
-            } 
-
-            // IsHostile
-            try {
                 entity.is_hostile = obj.IsHostile ? 1 : 0;
 
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"getAwakeEntities -> {e}");
-                
-            } 
 
 
             // is_attackable
             if ( 
+                !obj.IsAlive ||
+                !obj.IsHostile ||
                 !obj.HasComponent<Monster>() ||
                 !obj.HasComponent<Positioned>() ||
                 !obj.HasComponent<Render>() ||
                 !obj.TryGetComponent<Buffs>(out var buffs) ||
                 buffs.HasBuff("hidden_monster") || // legion
                 buffs.HasBuff("hidden_monster_disable_minions") || // essences
-                !obj.IsHostile ||
                 !obj.HasComponent<Life>() ||
-                !obj.IsAlive ||
                 !obj.HasComponent<ObjectMagicProperties>()
             ) {
                 entity.is_attackable = 0;
@@ -455,16 +430,12 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             try {
                 int loc_on_screen_x = 0;
                 int loc_on_screen_y = 0;
-
-                if (entity.world_position[0] != 0){
+                if (entity.entity_type != "wi" && entity.world_position[0] != 0){
                     var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
                     loc_on_screen_x = (int)loc_on_screen.X;
                     loc_on_screen_y = (int)loc_on_screen.Y;
-                } else if (entity.entity_type == "wi") {
-                    continue;
                 }
-
-                entity.location_on_screen = new List<int> { loc_on_screen_x, loc_on_screen_y };
+                entity.location_on_screen = [loc_on_screen_x, loc_on_screen_y];
             }
             catch (Exception e)
             {
@@ -1120,7 +1091,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         }
         return quest_states;
     }
-    public List<ItemOnGroundLabel_c> getItemsOnGroundLabelsVisible(){
+    public List<ItemOnGroundLabel_c> getItemsOnGroundLabelsVisible(bool detailed = true){
         List<ItemOnGroundLabel_c> visible_labels = new List<ItemOnGroundLabel_c>();
         foreach (var label in GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible){
             if (label.ItemOnGround.Path != "Metadata/MiscellaneousObjects/WorldItem") {
@@ -1131,15 +1102,14 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             visible_label.id = (int)label.ItemOnGround.Id;
             
             // grid position
-            visible_label.grid_position = new List<int> {
-                (int)label.ItemOnGround.GridPos.X,
-                (int)label.ItemOnGround.GridPos.Y
-            };
+            visible_label.grid_position =  [(int)label.ItemOnGround.GridPos.X, (int)label.ItemOnGround.GridPos.Y];
             var label_element = label.Label; 
             // screen zone
             // var label_element_rect = label_element.GetClientRect(); // label_element_rect
             visible_label.displayed_name = label_element.TextNoTags;
+            if(detailed){
             visible_label.screen_zone = getListOfIntFromElRect(label_element);
+            }
             var world_item_component = label.ItemOnGround.GetComponent<WorldItem>();
             if (world_item_component != null){
                 var item_entity = world_item_component.ItemEntity;
@@ -1148,12 +1118,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 if (render_item_component != null){
                     visible_label.animated_property_metadata = render_item_component.ResourcePath;
                 }
-                // // sockets
-                // var sockets_component = item_entity.GetComponent<Sockets>();
-                // if (sockets_component != null){
-                //     visible_label.l = sockets_component.SocketGroup;
-                // }
-                // mods
                 var mods_component = item_entity.GetComponent<Mods>();
                 if (mods_component != null){
                     visible_label.rarity = mods_component.ItemRarity.ToString();
@@ -1672,7 +1636,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
     public GetDataObject getData(string type){
         GetDataObject response = new GetDataObject();
-        DebugWindow.LogMsg("call getData");
+        // DebugWindow.LogMsg($"getData call at {Environment.TickCount}");
         bool detailed = false;
         if (type == "full"){
             detailed = true;
@@ -1741,7 +1705,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             response.terrain_string = generateMinimap().ToString();
             response.controller_type = GameController.Game.InputType.GetHashCode();
         }
-        DebugWindow.LogMsg("return getData");
+        // DebugWindow.LogMsg("return getData");
         return response;
 
     }
