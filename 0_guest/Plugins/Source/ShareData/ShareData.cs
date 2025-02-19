@@ -21,18 +21,58 @@ using Stack = ExileCore2.PoEMemory.Components.Stack;
 namespace ShareData;
 public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 {
-    private static int update_frequency_per_sec = 20;
-    private static List<GetDataObject> data_cache = new List<GetDataObject>();
-    private static readonly object dataTempLock = new object();  // Lock object for thread-safety
+    private TcpClient client = null;
+    private NetworkStream stream = null;
+    private StreamReader reader = null;
+    private StreamWriter writer = null;
 
     public override bool Initialise()
     {
         GameController.LeftPanel.WantUse(() => Settings.Enable);
         Task.Run(() => ServerRestartEvent());
         Task.Run(() => StartHttpServer()); // Start the HTTP server
-        Task.Run(() => startUpdatingCache()); // cache
         return true;
     }
+
+    public override void Tick()
+    {
+        // DebugWindow.LogMsg($"ticki at {Environment.TickCount}");
+
+        // Process TCP request
+        if (client != null)
+        {
+            try
+            {
+                // Check if the client is still connected
+                if (client.Client.Poll(0, SelectMode.SelectRead) && client.Client.Available == 0)
+                {
+                    DebugWindow.LogMsg($"TCP client disconnected");
+                    client = null; // Client disconnected
+                    return;
+                }
+
+                // Check if there is data available to read
+                if (client.Available > 0)
+                {
+                    string request = reader.ReadLine();
+                    if (request != null)
+                    {
+                        DebugWindow.LogMsg($"got tcp request {request}");
+                        string response = ProcessRequest(request);
+                        writer.WriteLine(response);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugWindow.LogError($"Client error: {ex}");
+                client = null; // Reset client on error
+            }
+        }
+
+        // Process HTTP request (if needed)
+    }
+
     private async Task StartHttpServer()
     {
         int httpPort = 50005;
@@ -46,51 +86,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             await Task.Delay(50);
             HttpListenerContext context = await listener.GetContextAsync();
             _ = HandleHttpRequestAsync(context); // Handle each HTTP request asynchronously
-        }
-    }
-
-    private async Task startUpdatingCache()
-    {
-        await Task.Delay(100);
-        int started_at_ms = Environment.TickCount;
-        while (true)
-        {
-            // Get new data and serialize it
-            GetDataObject data;
-            try
-            {
-                DebugWindow.LogMsg($"update cache");
-                data = getData("partial");
-            }
-            catch (Exception ex)
-            {
-                DebugWindow.LogError($"update cache error: {ex}");
-                await Task.Delay(10);
-                continue;
-            }
-
-            // Thread-safe access to data_temp (using lock)
-            lock (dataTempLock)
-            {
-                // Remove the oldest entry if the list has more than a certain number of entries
-                if (data_cache.Count > 10) // Adjust threshold as needed
-                {
-                    data_cache.RemoveAt(0);
-                }
-                data_cache.Add(data);
-            }
-
-            int ended_at_ms = Environment.TickCount;
-            int elapsed_time_ms = ended_at_ms - started_at_ms;
-
-            // Calculate the delay needed to maintain the update frequency
-            int wait_for_ms = (1000 / update_frequency_per_sec) - elapsed_time_ms;
-
-            if (wait_for_ms > 0)
-            {
-                await Task.Delay(wait_for_ms);
-            }
-            started_at_ms = Environment.TickCount;
         }
     }
 
@@ -113,6 +108,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             DebugWindow.LogError($"HTTP request error: {ex}");
         }
     }
+
     private async Task ServerRestartEvent()
     {
         int serverPort = 50006;
@@ -123,32 +119,14 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
         while (true)
         {
             await Task.Delay(10);
-            var client = await listener.AcceptTcpClientAsync();
-            _ = HandleClientAsync(client); // Handle each client asynchronously
-        }
-    }
-    private async Task HandleClientAsync(TcpClient client)
-    {
-        try
-        {
-            using (client)
-            using (var stream = client.GetStream())
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-            using (var writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
+            if (client == null)
             {
-                while (true)
-                {
-                    string request = await reader.ReadLineAsync();
-                    if (request == null) break; // Client disconnected
-
-                    string response = ProcessRequest(request);
-                    await writer.WriteLineAsync(response);
-                }
+                client = await listener.AcceptTcpClientAsync();
+                stream = client.GetStream();
+                reader = new StreamReader(stream, Encoding.UTF8);
+                writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+                DebugWindow.LogMsg($"TCP client connected");
             }
-        }
-        catch (Exception ex)
-        {
-            DebugWindow.LogError($"Client error: {ex}");
         }
     }
     public static byte WalkableValue(byte[] data, int bytesPerRow, long c, long r)
@@ -302,10 +280,10 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
             // BoundsCenterPos
             // need for checking if item is collectable
-                if ((int)obj.BoundsCenterPos.X != 0){
-                    entity.bound_center_pos = 1;
-                } else {
-                    entity.bound_center_pos = 0;
+            if ((int)obj.BoundsCenterPos.X != 0){
+                entity.bound_center_pos = 1;
+            } else {
+                entity.bound_center_pos = 0;
             }
             
             // update only when needed
@@ -330,8 +308,8 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             entity.render_name = obj.RenderName;
 
             // Rarity
-                entity.rarity = obj.Rarity.ToString();
-                entity.is_hostile = obj.IsHostile ? 1 : 0;
+            entity.rarity = obj.Rarity.ToString();
+            entity.is_hostile = obj.IsHostile ? 1 : 0;
 
 
 
@@ -1108,7 +1086,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             // var label_element_rect = label_element.GetClientRect(); // label_element_rect
             visible_label.displayed_name = label_element.TextNoTags;
             if(detailed){
-            visible_label.screen_zone = getListOfIntFromElRect(label_element);
+                visible_label.screen_zone = getListOfIntFromElRect(label_element);
             }
             var world_item_component = label.ItemOnGround.GetComponent<WorldItem>();
             if (world_item_component != null){
@@ -1636,6 +1614,7 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
 
     public GetDataObject getData(string type){
         GetDataObject response = new GetDataObject();
+        response.tick = Environment.TickCount;
         // DebugWindow.LogMsg($"getData call at {Environment.TickCount}");
         bool detailed = false;
         if (type == "full"){
@@ -1691,13 +1670,19 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             }
             response.area_raw_name = GameController.Area.CurrentArea.Area.Id;
             response.area_hash = GameController.Area.CurrentArea.Hash;
-
+            // DebugWindow.LogMsg($"getData pre at {Environment.TickCount}");
             response.player_info = getPlayerInfo();
+            // DebugWindow.LogMsg($"getData player at {Environment.TickCount}");
             response.awake_entities = getAwakeEntities();
-            response.item_labels = getItemsOnGroundLabelsVisible();
+            // DebugWindow.LogMsg($"getData entities at {Environment.TickCount}");
+            response.item_labels = getItemsOnGroundLabelsVisible(false);
+            // DebugWindow.LogMsg($"getData items at {Environment.TickCount}");
             response.visible_labels = getVisibleLabelOnGroundEntities();
+            // DebugWindow.LogMsg($"getData labels at {Environment.TickCount}");
             response.skills = getSkillBar(detailed);
+            // DebugWindow.LogMsg($"getData skills at {Environment.TickCount}");
             response.flasks = getFlasksInfo();
+            // DebugWindow.LogMsg($"getData flasks at {Environment.TickCount}");
         } catch (Exception e) {
             DebugWindow.LogError($"ShareData cannot build player data -> {e}");
         }
@@ -1725,16 +1710,19 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                     if (requestType == "full"){
                         data = getData(requestType);
                     } else {
-                        // Thread-safe access to the last item in the list
-                        lock (dataTempLock)
-                        {
-                            data = data_cache[data_cache.Count - 1];
-                            // if (data_cache.Count > 0)
-                            // {
-                            // }
-                        }
+                        data = getData(requestType);
+                        
+                        
+                        // // Thread-safe access to the last item in the list
+                        // lock (dataTempLock)
+                        // {
+                        //     data = data_cache[data_cache.Count - 1];
+                        //     // if (data_cache.Count > 0)
+                        //     // {
+                        //     // }
+                        // }
                     }
-                    updateScreenLocForEntities(data);
+                    // updateScreenLocForEntities(data);
                     return SerializeData(data);
 
                 case "/getLocationOnScreen":

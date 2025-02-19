@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 // to increase performance by reducing the size of json response
@@ -422,6 +422,8 @@ public class GetDataObject
     public List<int> mouse_cursor_pos { get; set; } // mouse cursor pos [x,y]
     [JsonProperty("c_t")]
     public int controller_type; 
+    [JsonProperty("t")]
+    public int tick = 0; 
 }
 public class InventoryObjectCustom_c
 {
