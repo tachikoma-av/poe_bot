@@ -1130,6 +1130,14 @@ class MapDevice_Poe2(MapDevice):
         break
     if self.is_opened is not True:
       raise Exception("map_device.opened is not True")
+    
+    _i = 0
+    while len(self.all_maps) == 0:
+      _i += 1
+      if _i > 10:
+        self.poe_bot.raiseLongSleepException("[ui.MapDevice_Poe2.open] len(self.all_maps) == 0 for 10 iterations")
+      time.sleep(1)
+      self.update()
     return True
 
 
