@@ -441,14 +441,11 @@ class LootFilter:
     item_visible_labels = poe_bot.backend.last_data["i"].copy()
     for label in item_visible_labels: # invert Y axis
       label["gp"][1] = self.poe_bot.game_data.terrain.terrain_image.shape[0] - label["gp"][1]
-    item_visible_labels = list(
-      filter(
-        lambda l: l["a"] is not None
-        and l["id"] not in self.item_id_to_ignore
-        and poe_bot.game_data.terrain.checkIfPointPassable(l["gp"][0], l["gp"][1], 5),
-        item_visible_labels,
-      )
-    )
+    item_visible_labels = list(filter(lambda l:
+        l["a"] is not None and
+        l["id"] not in self.item_id_to_ignore and
+        poe_bot.game_data.terrain.checkIfPointPassable(l["gp"][0], l["gp"][1], 5)
+    , item_visible_labels))
     if self.poe_bot.debug:
       print(f"item_visible_labels {item_visible_labels}")
 
