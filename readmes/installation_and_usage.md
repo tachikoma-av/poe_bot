@@ -1,32 +1,34 @@
 # 0_guest
 ## How to install:
-- install python 3.8.10, you can download it from https://www.python.org/downloads/release/python-3810/ , dont forget to check on "add to PATH" during python installation
 - install .NET SDK 8.0 x64 https://dotnet.microsoft.com/en-us/download/dotnet/8.0
-- install VC 2015 Redistributable https://www.microsoft.com/en-us/download/confirmation.aspx?id=48145
-- after you did install python, run pip install -r requirements.txt inside 0_guest folder 
-<!-- - after you did install python, run utils/2_install_python_libs.bat, itll install all the python dependencies -->
-- poe 1 exileapi can be downloaded at https://www.ownedcore.com/forums/mmo/path-of-exile/poe-bots-programs/1000594-exileapi-3-23-beyond-plugin-framework.html
-- poe 2 exilecore2 at https://www.ownedcore.com/forums/path-of-exile-2/path-of-exile-2-buy-sell-trade/1057794-exilecore2-exileapi-successor-beta-access.html
+- install VC 2015 Redistributable https://www.microsoft.com/en-US/download/details.aspx?id=48145
+- install python - 0_guest/1_install_python.bat
+- install libraries - 0_guest/2_install_venv.bat
+
+- install exilecore2 - 0_guest/3_install_ex2_hud.bat 
+OR
+- copy 0_guest/Plugins folder inside your exilecore2 instance
 
 ## Important:
-- be sure to disable firewall and disable turning off the monitor, if not sure how to do that, run utils/0_preset.bat
+- be sure to disable firewall and disable turning off the monitor
 - be sure to set the game resolution to 1024x768, otherwise it may cause unexpected behaiviour
 - if you have vpn, make sure that you dont pass connections through ports 50006,50007
 
+
 # 1_host
 ## How to install:
-- install python 3.8.10, you can download it from https://www.python.org/downloads/release/python-3810/ , "add to PATH" during python installation
-- install VC 2015 Redistributable https://www.microsoft.com/en-us/download/confirmation.aspx?id=48145
-- after you did install python, run pip install -r requirements.txt inside 1_host folder 
-<!-- - after you did install python, run utils/2_install_python_libs.bat, itll install all the python dependencies -->
+- install python - 1_host/scripts/1_install_python.bat
+- install libraries - 1_host/scripts/2_install_venv.bat
+<!-- install VC 2015 Redistributable https://www.microsoft.com/en-US/download/details.aspx?id=48145 -->
 
 ## Important:
-- be sure to disable firewall and disable turning off the monitor, if not sure how to do that, run utils/0_preset.bat
+- be sure to disable firewall and disable turning off the monitor
+
 
 # Usage
 - run start.bat from 0_guest on your virtual machine
-- run ExileApi with plugin from hud_dpb/ExileApi/Core/Plugins/ShareData on your virtual machine
-- run bat_atlas_rush_pconc.bat on your host machine
+- run ExileApi with plugin from 0_guest/Plugins/ShareData on your virtual machine
+- run poe2_mapper.bat but you need your own build or u know to code ;)
 - works
 
 usage sample raw: https://www.youtube.com/watch?v=4HEG2ryBzrQ

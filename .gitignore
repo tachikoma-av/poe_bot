@@ -1,51 +1,13 @@
-*
-
-!.gitignore
-!build_release.ipynb
-!setup.py
-!readme.md
-
-!readmes/
-!readmes/**
-
-
-!0_guest/
-!0_guest/**
-
-!1_host/
-!1_host/**
 1_host/temp
-1_host/screen_reader
-1_host/error_dumps
 
-
-# poe 1 hud plugin 
-!hud_dpb/ExileApi/Core/Plugins/ShareData/**
-
-# poe 2 hud
-!hud_dpb/
-!hud_dpb/ExileCore2/
-!hud_dpb/ExileCore2/Plugins/
-!hud_dpb/ExileCore2/Plugins/Compiled/
-!hud_dpb/ExileCore2/Plugins/Compiled/ShareData/
-!hud_dpb/ExileCore2/Plugins/Compiled/ShareData/**
-!hud_dpb/ExileCore2/Plugins/Source/
-!hud_dpb/ExileCore2/Plugins/Source/ShareData/
-!hud_dpb/ExileCore2/Plugins/Source/ShareData/**
-
-
-!poe2_follower.bat
-!poe2_runner.bat
-!poe2_lost_city.bat
-!bat_aqueduct.bat
-!bat_atlas_rush_bama.bat
-!bat_atlas_rush_pconc.bat
-!bat_atlas_rush_vg.bat
-!price_check.bat
-!quest_ranger.bat
-!quest_witch.bat
+.vscode/
 
 **/__pycache__/
 **/.vscode/
 **/.vs/
 **/*.sln
+
+**/bin/
+**/obj/
+
+**/venv/

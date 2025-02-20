@@ -1,2 +1,3 @@
-python convertorFromJupyterToPy.py
+call venv\Scripts\activate
+python ./scripts/convertorFromJupyterToPy.py
 pause

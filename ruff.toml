@@ -1,0 +1,7 @@
+indent-width = 2
+unsafe-fixes = true
+line-length = 150
+ignore = [
+  "E722",
+  "F811",
+]

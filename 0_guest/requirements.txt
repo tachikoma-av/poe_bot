@@ -1,6 +1,5 @@
 # pip install -r requirements.txt
-# plus proxy: SET HTTPS_PROXY=http://127.0.0.1:34567
-numpy==1.23.0
-pywin32==304
-opencv-python==4.5.5.64
-requests==2.26.0
+numpy==2.2.2
+pywin32==308
+opencv-python==4.11.0.86
+requests==2.32.3
