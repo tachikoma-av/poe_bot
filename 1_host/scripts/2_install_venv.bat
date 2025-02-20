@@ -12,3 +12,5 @@ python -m ensurepip --default-pip
 python -m pip install --upgrade pip setuptools wheel
 echo Installing libs...
 pip install -r requirements.txt
+
+pause
