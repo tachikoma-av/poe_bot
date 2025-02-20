@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -286,21 +286,21 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                 entity.bound_center_pos = 0;
             }
             
-            // update only when needed
-            int loc_on_screen_x = 0;
-            int loc_on_screen_y = 0;
-            try {
-                if (obj.Type != EntityType.WorldItem && entity.world_position[0] != 0){
-                    var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
-                    loc_on_screen_x = (int)loc_on_screen.X;
-                    loc_on_screen_y = (int)loc_on_screen.Y;
-                }
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"updateScreenLocForEntities -> {e}");
-            }
-            entity.location_on_screen = [loc_on_screen_x, loc_on_screen_y];
+            // // update only when needed
+            // int loc_on_screen_x = 0;
+            // int loc_on_screen_y = 0;
+            // try {
+            //     if (obj.Type != EntityType.WorldItem && entity.world_position[0] != 0){
+            //         var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
+            //         loc_on_screen_x = (int)loc_on_screen.X;
+            //         loc_on_screen_y = (int)loc_on_screen.Y;
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     DebugWindow.LogMsg($"updateScreenLocForEntities -> {e}");
+            // }
+            // entity.location_on_screen = [loc_on_screen_x, loc_on_screen_y];
 
 
 
@@ -400,26 +400,6 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
             awake_entities.Add(entity);
         }
         return awake_entities;
-    }
-
-    public void updateScreenLocForEntities(GetDataObject get_data_object){        
-        foreach (var entity in get_data_object.awake_entities)
-        {
-            try {
-                int loc_on_screen_x = 0;
-                int loc_on_screen_y = 0;
-                if (entity.entity_type != "wi" && entity.world_position[0] != 0){
-                    var loc_on_screen = GameController.IngameState.Camera.WorldToScreen(new System.Numerics.Vector3(entity.world_position[0], entity.world_position[1], entity.world_position[2]));
-                    loc_on_screen_x = (int)loc_on_screen.X;
-                    loc_on_screen_y = (int)loc_on_screen.Y;
-                }
-                entity.location_on_screen = [loc_on_screen_x, loc_on_screen_y];
-            }
-            catch (Exception e)
-            {
-                DebugWindow.LogMsg($"updateScreenLocForEntities -> {e}");
-            }
-        }
     }
 
     public List<string> TraverseElementsBFS(Element root)
@@ -1668,6 +1648,16 @@ public class ShareData : BaseSettingsPlugin<ShareDataSettings>
                     break;
                 }
             }
+
+            var matrix = GameController.IngameState.Camera.Snapshot.Matrix;
+            response.matrix = new float[] {
+                matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                matrix.M41, matrix.M42, matrix.M43, matrix.M44
+            };
+
+
             response.area_raw_name = GameController.Area.CurrentArea.Area.Id;
             response.area_hash = GameController.Area.CurrentArea.Hash;
             // DebugWindow.LogMsg($"getData pre at {Environment.TickCount}");

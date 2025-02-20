@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 // to increase performance by reducing the size of json response
@@ -307,8 +307,6 @@ public class MinimapIcon_c
 
 
 public class Entity_c{
-    [JsonProperty("ls")]
-    public int[] location_on_screen { get; set; }
     [JsonProperty("p")]
     public string path { get; set; }
     [JsonProperty("r")]
@@ -396,6 +394,7 @@ public class GetDataObject
     public string terrain_string;
     [JsonProperty("ah")]
     public uint area_hash; // area hash
+    public string area_raw_name { get; set; }
     [JsonProperty("awake_entities")]
     public List<Entity_c> awake_entities { get; set; }
     [JsonProperty("vl")]
@@ -411,7 +410,6 @@ public class GetDataObject
     // [JsonProperty("br")]
     public bool IsLoading_b { get; set; }
     // [JsonProperty("br")]
-    public string area_raw_name { get; set; }
     [JsonProperty("f")]
     public FlasksOnBar flasks { get; set; }
     [JsonProperty("s")]
@@ -424,6 +422,8 @@ public class GetDataObject
     public int controller_type; 
     [JsonProperty("t")]
     public int tick = 0; 
+    [JsonProperty("m")]
+    public float[] matrix;
 }
 public class InventoryObjectCustom_c
 {
