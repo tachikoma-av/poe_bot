@@ -2,14 +2,17 @@ import os
 import socket
 import time
 import uuid
-
-import win32clipboard
-from utils import Controller
-
-import json
+import struct
+import pickle
+from tkinter import Tk
 import subprocess
 
 import win32gui
+import win32clipboard
+from ctypes import windll
+import numpy as np
+
+from utils import Controller, grabScreen, sortByHSV
 
 controller = Controller()
 
@@ -32,35 +35,10 @@ def processExists(process_name):
   # because Fail message could be translated
   return last_line.lower().startswith(process_name.lower())
 
-
-
-
-
 def getParam(action_msg: str, param: str):
   return action_msg.split(f"{param}=")[1].split("&")[0]
 
 
-temp = {}
-
-
-def loadTemp():
-  file = open("./temp.json", encoding="utf-8")
-  config = json.load(file)
-  file.close()
-  global temp
-  temp = config
-
-
-def updateTemp():
-  file = open("./temp.json", "w", encoding="utf-8")
-  json.dump(temp, file, ensure_ascii=False, indent=4)
-  file.close()
-
-
-try:
-  loadTemp()
-except:
-  pass
 
 default_ok_response = b"1"
 
@@ -80,6 +58,13 @@ def Main():
   c, addr = s.accept()
   print("[Worker] established connection with: " + str(addr))
   s.close()
+
+  def sendBytes(file:bytes):
+    file_len = len(file)
+    data_size = struct.pack('>I', file_len)
+    print(f'[Worker] sending bytes {data_size} {file_len}')
+    c.sendall(data_size)
+    c.sendall(img)
 
   while True:
     action_msg = c.recv(1024).decode()
@@ -150,6 +135,58 @@ def Main():
       win32clipboard.CloseClipboard()
       if wait_till_recieved is not True:
         c.send(default_ok_response)
+    elif action == "getClipboardText":
+      clipboard_text = None
+      try:
+        clipboard_text = Tk().clipboard_get()
+      except:
+        print('no text in a clipboard')
+        clipboard_text = None
+      data = pickle.dumps(clipboard_text)
+      if windll.user32.OpenClipboard(None):
+        windll.user32.EmptyClipboard()
+        windll.user32.CloseClipboard()
+      sendBytes(data)
+    elif action == "getFullScreen":
+      img = grabScreen()
+      img = pickle.dumps(img)
+      sendBytes(img)
+    elif action == "getPartialScreen":
+      x1 = int( action_msg.split('x1=')[1].split('&')[0])
+      y1 = int( action_msg.split('y1=')[1].split('&')[0])
+      x2 = int( action_msg.split('x2=')[1].split('&')[0])
+      y2 = int( action_msg.split('y2=')[1].split('&')[0])
+      got_screen = False
+      for i in range(10):
+        print(f'grabbing the screen iter number {i}')
+        try:
+          img = grabScreen((x1,y1,x2,y2))
+          got_screen = True
+          break
+        except: 
+          print('couldnt grab the screen')
+      if got_screen is False:
+        raise 'couldnt grab the screen'
+      img = pickle.dumps(img)
+      sendBytes(img)
+    elif action == 'getSortedByHSV':
+      x1 = int( action_msg.split('x1=')[1].split('&')[0])
+      y1 = int( action_msg.split('y1=')[1].split('&')[0])
+      x2 = int( action_msg.split('x2=')[1].split('&')[0])
+      y2 = int( action_msg.split('y2=')[1].split('&')[0])
+      
+      h1 = int( action_msg.split('h1=')[1].split('&')[0])
+      s1 = int( action_msg.split('s1=')[1].split('&')[0])
+      v1 = int( action_msg.split('v1=')[1].split('&')[0])
+      h2 = int( action_msg.split('h2=')[1].split('&')[0])
+      s2 = int( getParam(action_msg, 's2'))
+      v2 = int( getParam(action_msg, 'v2'))
+      img = grabScreen((x1,y1,x2,y2))
+      sorted_hsv = sortByHSV(img,0,255,240,255,255,255)
+      data = np.where(sorted_hsv != 0)
+      coords = list(zip(data[0], data[1]))
+      coords_pickled = pickle.dumps(coords)
+      sendBytes(coords_pickled)
     elif action == "restartScript":
       print("[Worker] got restart script")
       if wait_till_recieved is not True:
