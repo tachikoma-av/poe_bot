@@ -77,7 +77,7 @@ class MapperSettings:
 
   prefered_tier: str = "5+"
   min_map_tier = 1
-  max_map_tier = 8
+  max_map_tier = 16
   prefer_high_tier = True
 
   # TODO keep consumables same as maps.ipynb
@@ -345,6 +345,7 @@ class Mapper2(PoeBotComponent):
     activate map
     """
     poe_bot: Poe2Bot = self.poe_bot
+    poe_bot.mover.default_continue_function = lambda _: False
     poe_bot.ui.inventory.update()
     maps_in_inventory = self.getWaystonesCanUse(source="inventory")
     if len(maps_in_inventory) == 0:
@@ -1274,9 +1275,9 @@ alch_map_if_possible = True
 
 
 default_config = {
-  "REMOTE_IP": "172.27.109.227sd",  # z2
+  "REMOTE_IP": "172.17.172.89",  # z2
   "unique_id": "poe_2_test",
-  "build": "EaBallistasEle",
+  "build": "TemporalisBlinker",
   "max_lvl": 101,
   "chromatics_recipe": True,
   "force_reset_temp": False,
@@ -1344,9 +1345,12 @@ poe_bot.mover.setMoveType("wasd")
 # from utils.combat import BarrierInvocationInfernalist
 # poe_bot.combat_module.build = BarrierInvocationInfernalist(poe_bot)
 
-from utils.combat import InfernalistMinion
+from utils.combat import TemporalisBlinker
+poe_bot.combat_module.build = TemporalisBlinker(poe_bot)
 
-poe_bot.combat_module.build = InfernalistMinion(poe_bot)
+# from utils.combat import InfernalistMinion
+
+# poe_bot.combat_module.build = InfernalistMinion(poe_bot)
 
 
 # In[7]:

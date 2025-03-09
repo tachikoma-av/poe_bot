@@ -29,7 +29,7 @@ notebook_dev = False
 
 
 default_config = {
-  "REMOTE_IP": "172.17.91.193",  # z2
+  "REMOTE_IP": "192.168.72.253",  # z2
   "unique_id": "poe_2_test",
   "force_reset_temp": False,
 }
@@ -87,7 +87,7 @@ if "demon_transformation" in poe_bot.game_data.skills.internal_names:
 else:
   print("minions build")
   poe_bot.combat_module.build = InfernalistZoomancer(poe_bot, can_kite=False)
-
+  
 min_stacks_for_wave_11_plus = 60
 reset_form_before_waves = [9]
 max_stacks_for_wave_11_plus = 400
@@ -95,6 +95,8 @@ max_stacks_for_wave_11_plus = 400
 
 # In[7]:
 
+from utils.combat import TemporalisBlinker
+poe_bot.combat_module.build = TemporalisBlinker(poe_bot)
 
 # default mover function
 poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
@@ -247,6 +249,7 @@ class Simulacrum2:
         (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable is True and e.path == "Metadata/MiscellaneousObjects/Stash"), None
       )
       if stash_entity:
+        poe_bot.mover.default_continue_function = lambda _: False
         poe_bot.mover.goToEntitysPoint(stash_entity, release_mouse_on_end=True)
         time.sleep(random.uniform(0.20, 0.40))
         stash_entity.hover(update_screen_pos=True)
@@ -256,6 +259,7 @@ class Simulacrum2:
           (e for e in poe_bot.game_data.entities.all_entities if e.is_targetable is True and e.path == "Metadata/MiscellaneousObjects/Stash"), None
         )
         if stash_entity and stash_entity.is_targeted is True:
+          poe_bot.mover.default_continue_function = lambda _: False
           stash_entity.click()
           time.sleep(random.uniform(0.20, 0.40))
           poe_bot.ui.stash.update()
@@ -272,19 +276,23 @@ class Simulacrum2:
     afflictionator_entity = self.getTargetableAfflictionator()
     if afflictionator_entity:
       while True:
+        poe_bot.mover.default_continue_function = lambda _: False
         res = poe_bot.mover.goToEntitysPoint(afflictionator_entity, release_mouse_on_end=True, custom_break_function=self.scanForInterestingEntities)
         if res is None:
           break
       if self.stashItemsIfFull() is True:
+        poe_bot.mover.default_continue_function = lambda _: False
         poe_bot.refreshInstanceData()
         poe_bot.mover.goToEntitysPoint(afflictionator_entity, release_mouse_on_end=True, custom_break_function=self.scanForInterestingEntities)
 
-      if isinstance(poe_bot.combat_module.build) == BarrierInvocationInfernalist and reset_form_before_waves != [] and self.cache.wave > 1:
-        demon_stacks = poe_bot.combat_module.build.getDemonFormStacks()
-        print(f"going to generate {min_stacks_for_wave_11_plus} stacks")
-        if demon_stacks < min_stacks_for_wave_11_plus:
+      if isinstance(poe_bot.combat_module.build, TemporalisBlinker):
+      #if isinstance(poe_bot.combat_module.build) == BarrierInvocationInfernalist and reset_form_before_waves != [] and self.cache.wave > 1:
+        #demon_stacks = poe_bot.combat_module.build.getDemonFormStacks()
+        #print(f"going to generate {min_stacks_for_wave_11_plus} stacks")
+        #if demon_stacks < min_stacks_for_wave_11_plus:
+          poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
           self.stashItemsIfFull(0)
-          poe_bot.combat_module.build.generateStacks(min_stacks_for_wave_11_plus)
+          #poe_bot.combat_module.build.generateStacks(min_stacks_for_wave_11_plus)
 
       def getNextWaveFromAfflictionatorLabel():
         visible_labels_raw = poe_bot.backend.getVisibleLabels()
@@ -309,6 +317,7 @@ class Simulacrum2:
 
   def isWaveRunning(self):
     poe_bot = self.poe_bot
+    poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
     if len(poe_bot.game_data.entities.attackable_entities) != 0:
       print("true cos attackable entities")
       return True
@@ -322,6 +331,7 @@ class Simulacrum2:
 
   def isWaveRunning_2(self):
     poe_bot = self.poe_bot
+    poe_bot.mover.default_continue_function = poe_bot.combat_module.build.usualRoutine
     if len(poe_bot.game_data.entities.attackable_entities) != 0:
       print("true cos attackable entities")
       return True
@@ -369,6 +379,7 @@ class Simulacrum2:
     self.cache.save()
 
   def activateMap(self):
+    poe_bot.mover.default_continue_function = lambda _: False
     poe_bot.ui.map_device.open()
     time.sleep(1)
     poe_bot.ui.map_device.open()
@@ -406,25 +417,41 @@ class Simulacrum2:
       poe_bot.raiseLongSleepException("cant open realmgate")
 
     poe_bot.ui.inventory.update()
+    time.sleep(0.5)  # Délai pour la synchronisation
+    print(f"Recherche de Simulacrum parmi {len(poe_bot.ui.inventory.items)} items")
+    print("Items trouvés:", [i.name for i in poe_bot.ui.inventory.items])
+    poe_bot.ui.inventory.update()
     simulacrum_item = next((i for i in poe_bot.ui.inventory.items if i.name == "Simulacrum"), None)
-    if simulacrum_item is None:
-      poe_bot.ui.closeAll()
-      self.cache.reset()
-      raise Exception("no simulacrums in inventory during map activation")
-      poe_bot.raiseLongSleepException("no simulacrums in inventory")
+    
+    if simulacrum_item.click(hold_ctrl=True):
+      time.sleep(1)
+      poe_bot.ui.inventory.update()  # Re-vérifier l'inventaire
+    if not any(i.name == "Simulacrum" for i in poe_bot.ui.inventory.items):
+      print("ERREUR: Le Simulacrum n'a pas été déplacé")
 
-    simulacrum_item.click(hold_ctrl=True)
 
     can_activate = poe_bot.ui.map_device.checkIfActivateButtonIsActive()
-    if can_activate is False:
-      poe_bot.raiseLongSleepException("activate button is not active")
+    if can_activate is True:
+      poe_bot.ui.map_device.activate()
 
-    poe_bot.ui.map_device.activate()
+      poe_bot.helper_functions.waitForNewPortals()
 
-    poe_bot.helper_functions.waitForNewPortals()
+      self.cache.stage = 2
+      self.cache.save()
 
-    self.cache.stage = 2
-    self.cache.save()
+      while can_activate is False:
+        poe_bot.raiseLongSleepException("activate button is not active")
+
+      
+
+    
+    else:
+        
+        simulacrum_item is None
+        poe_bot.ui.closeAll()
+        self.cache.reset()
+        raise Exception("no simulacrums in inventory during map activation") 
+    
 
   def run(self):
     poe_bot = self.poe_bot
@@ -453,7 +480,7 @@ class Simulacrum2:
         if len(portals) == 0:
           self.cache.reset()
           raise Exception("[Simulacrum.run] no portals left to enter")
-        poe_bot.mover.goToEntitysPoint(portals[0], min_distance=30, release_mouse_on_end=True)
+        poe_bot.mover.goToEntitysPoint(portals[0], min_distance=10, release_mouse_on_end=True)
         while poe_bot.game_data.invites_panel_visible is False:
           portals[0].click(update_screen_pos=True)
           time.sleep(random.uniform(0.3, 0.7))
@@ -550,9 +577,10 @@ class Simulacrum2:
           print(f"wave running status {is_wave_running}")
 
       poe_bot.refreshInstanceData()
-      if isinstance(poe_bot.combat_module.build) == BarrierInvocationInfernalist and (self.cache.wave + 1) in reset_form_before_waves:
-        poe_bot.combat_module.build.demon_form.use()
-      poe_bot.loot_picker.collectLootWhilePresented()
+      if isinstance(poe_bot.combat_module.build, TemporalisBlinker):
+      #if isinstance(poe_bot.combat_module.build) == BarrierInvocationInfernalist and (self.cache.wave + 1) in reset_form_before_waves:
+        #poe_bot.combat_module.build.demon_form.use()
+        poe_bot.loot_picker.collectLootWhilePresented()
       self.cache.wave_started = False
       self.cache.save()
       print("wave completed")
