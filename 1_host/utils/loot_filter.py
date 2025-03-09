@@ -86,7 +86,7 @@ class LootPicker:
       print("going closer to loot")
       self.poe_bot.mover.goToPoint(
         point=(pickable_item.grid_position.x, pickable_item.grid_position.y),
-        custom_continue_function=poe_bot.combat_module.build.usualRoutine,
+        custom_continue_function=lambda _: False,
         release_mouse_on_end=True,
         min_distance=20,
         step_size=random.randint(30, 35),

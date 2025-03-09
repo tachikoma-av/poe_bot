@@ -2631,9 +2631,111 @@ class BarrierInvocationInfernalist(Build):
     return True
 
 class TemporalisBlinker(Build):
-  def __init__(self, poe_bot):
-    super().__init__(poe_bot)
-    self.dodge = DodgeRoll(self.poe_bot)
+    def __init__(self, poe_bot: PoeBot) -> None:
+        super().__init__(poe_bot)
+        self.dodge = DodgeRoll(poe_bot)
+        self.auto_flasks = AutoFlasks(
+            poe_bot=poe_bot,
+            hp_thresh=0.70,
+            mana_thresh=0.2,
+            life_flask_recovers_es=False
+        )
+        self.last_dodge_time = 0
+        self.min_attack_distance = 25
+        self.max_attack_distance = 40
+        self.safe_margin = 50
+
+    def get_valid_screen_pos(self, grid_x, grid_y):
+        screen_x, screen_y = self.poe_bot.getPositionOfThePointOnTheScreen(grid_y, grid_x)
+        
+        # Utilisation de game_window pour les dimensions d'écran
+        max_x = self.poe_bot.game_window.width - self.safe_margin
+        max_y = self.poe_bot.game_window.height - self.safe_margin
+        
+        screen_x = max(self.safe_margin, min(screen_x, max_x))
+        screen_y = max(self.safe_margin, min(screen_y, max_y))
+        
+        return self.poe_bot.game_window.convertPosXY(screen_x, screen_y)
+
+    def safe_dodge(self, grid_x, grid_y):
+        x = int(grid_x)
+        y = int(grid_y)
+        
+        if x < 0 or y < 0:
+            return False
+            
+        if y >= len(self.poe_bot.game_data.terrain.passable):
+            return False
+            
+        if x >= len(self.poe_bot.game_data.terrain.passable[0]):
+            return False
+            
+        if self.poe_bot.game_data.terrain.passable[y][x] == 1:
+            screen_x, screen_y = self.get_valid_screen_pos(x, y)
+            return self.dodge.use(pos_x=x, pos_y=y)
+        return False
+
+    def usualRoutine(self, mover: Mover = None):
+        poe_bot = self.poe_bot
+        self.auto_flasks.useFlasks()
+        
+        if mover and time.time() > self.last_dodge_time + 0.3:
+            target_pos = (mover.grid_pos_to_step_x, mover.grid_pos_to_step_y)
+            if self.safe_dodge(*target_pos):
+                self.last_dodge_time = time.time()
+                return True
+
+        nearby_enemies = list(filter(
+            lambda e: (e.is_hostile 
+                      and self.min_attack_distance < e.distance_to_player < self.max_attack_distance
+                      and e.isInLineOfSight()
+                      and e.isOnPassableZone()),
+            poe_bot.game_data.entities.attackable_entities
+        ))
+        
+        if nearby_enemies and time.time() > self.last_dodge_time + 0.5:
+            enemy = max(nearby_enemies, key=lambda e: e.calculateValueForAttack())
+            if self.safe_dodge(enemy.grid_position.x, enemy.grid_position.y):
+                self.last_dodge_time = time.time()
+                return True
+
+        return False
+
+    def killUsual(self, entity: Entity, is_strong=False, max_kill_time_sec=10, *args, **kwargs):
+        poe_bot = self.poe_bot
+        start_time = time.time()
+        
+        while time.time() < start_time + max_kill_time_sec:
+            poe_bot.refreshInstanceData()
+            self.auto_flasks.useFlasks()
+            
+            current_entity = next((e for e in poe_bot.game_data.entities.attackable_entities 
+                                  if e.id == entity.id and e.isOnPassableZone()), None)
+            
+            if not current_entity or current_entity.life.health.current < 1:
+                return True
+                
+            player_pos = (poe_bot.game_data.player.grid_pos.x, poe_bot.game_data.player.grid_pos.y)
+            entity_pos = (current_entity.grid_position.x, current_entity.grid_position.y)
+            distance = dist(player_pos, entity_pos)
+            
+            if not current_entity.isInLineOfSight() or not current_entity.isOnPassableZone():
+                return False
+
+            if distance > self.max_attack_distance:
+                if self.safe_dodge(*entity_pos):
+                    self.last_dodge_time = time.time()
+            elif distance < self.min_attack_distance:
+                back_pos = extendLine(player_pos, entity_pos, -1.5)
+                if self.safe_dodge(*back_pos):
+                    self.last_dodge_time = time.time()
+            else:
+                if self.safe_dodge(*entity_pos):
+                    self.last_dodge_time = time.time()
+
+            time.sleep(0.1)
+            
+        return False
 
 class TempestFlurryBuild(Build):
   def __init__(self, poe_bot):
